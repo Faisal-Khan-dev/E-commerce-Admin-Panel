@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Customers, Dashboard, Login, Orders, Products, Categories, AddProduct, EditProduct, WebSettings } from "../pages";
+import { Customers, AddCustomer, EditCustomer, Dashboard, Login, Orders, Products, Categories, AddProduct, EditProduct, WebSettings } from "../pages";
 import AdminLayout from "../layouts/AdminLayout";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -20,6 +20,8 @@ const AppRoutes = () => {
                         <Route path="/edit-product/:id" element={<EditProduct />} />
                         <Route path="/categories" element={<Categories />} />
                         <Route path="/customers" element={<Customers />} />
+                        <Route path="/add-customer" element={<AddCustomer />} />
+                        <Route path="/edit-customer/:id" element={<EditCustomer />} />
                         <Route path="/settings" element={<WebSettings />} />
                     </Route>
                 </Route>

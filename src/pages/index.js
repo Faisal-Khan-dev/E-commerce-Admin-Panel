@@ -1,4 +1,6 @@
 import Customers from "./Customers";
+import AddCustomer from "./AddCustomer";
+import EditCustomer from "./EditCustomer";
 import Dashboard from "./Dashboard";
 import Login from "./Login";
 import Orders from "./Orders";
@@ -10,6 +12,8 @@ import WebSettings from "./WebSettings";
 
 export {
     Customers,
+    AddCustomer,
+    EditCustomer,
     Dashboard,
     Login,
     Orders,

@@ -1,14 +1,23 @@
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getAllCustomers, updateCustomer, searchCustomer } from "../services/customer";
+import { getAllCustomers, getSingleCustomer, updateCustomer, deleteCustomer } from "../services/customer";
 
-const useCustomers = (page, limit) => {
+const useCustomers = (search = '') => {
     return useQuery({
-        queryKey: ["customers", page],
-        queryFn: () => getAllCustomers(page, limit),
+        queryKey: ["customers", search],
+        queryFn: () => getAllCustomers(search),
         placeholderData: keepPreviousData,
         refetchOnWindowFocus: false
     });
 }
+
+const useGetSingleCustomer = (id) => {
+    return useQuery({
+        queryKey: ["customer", id],
+        queryFn: () => getSingleCustomer(id),
+        enabled: !!id,
+        staleTime: 1000 * 60 * 5,
+    });
+};
 
 const useUpdateCustomer = () => {
     const queryClient = useQueryClient();
@@ -21,14 +30,15 @@ const useUpdateCustomer = () => {
     });
 }
 
-const useSearchCustomer = (query, page, limit) => {
-    return useQuery({
-        queryKey: ["customers", query, page],
-        queryFn: () => searchCustomer(query, page, limit),
-        enabled: Boolean(query),
-        staleTime: 2 * 1000 * 60,
-        placeholderData: keepPreviousData
-    })
+const useDeleteCustomer = () => {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: (id) => deleteCustomer(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["customers"] });
+        }
+    });
 }
 
-export { useCustomers, useUpdateCustomer, useSearchCustomer };
+export { useCustomers, useGetSingleCustomer, useUpdateCustomer, useDeleteCustomer };

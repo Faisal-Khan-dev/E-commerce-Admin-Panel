@@ -1,19 +1,28 @@
 import api from "../lib/axios";
 
-const getAllCustomers = async (page, limit) => {
-    const res = await api.get(`/customers?page=${page}&limit=${limit}`);
+const getAllCustomers = async (search = '') => {
+    const res = await api.get(`/users/all?search=${search}`);
+    return res.data;
+}
+
+const getSingleCustomer = async (id) => {
+    const res = await api.get(`/users/${id}`);
+    return res.data;
+}
+
+const createCustomer = async (data) => {
+    const res = await api.post(`/users`, data);
     return res.data;
 }
 
 const updateCustomer = async (id, data) => {
-    const res = await api.patch(`/customers/${id}/status`, data);
+    const res = await api.put(`/users/${id}`, data);
     return res.data;
 }
 
-
-const searchCustomer = async (query, page = 1, limit = 10) => {
-    const res = await api.get(`/customers/search?query=${query}&page=${page}&limit=${limit}`);
+const deleteCustomer = async (id) => {
+    const res = await api.delete(`/users/${id}`);
     return res.data;
 }
 
-export { getAllCustomers, updateCustomer, searchCustomer };
+export { getAllCustomers, getSingleCustomer, createCustomer, updateCustomer, deleteCustomer };
