@@ -1,0 +1,123 @@
+@import "tailwindcss";
+
+@theme {
+    /* Brand colors */
+    --color-primary: #2563EB;
+    /* Blue 600 */
+    --color-accent: #0EA5E9;
+    /* Semantic Colors */
+    --color-success: #047857;
+    --color-warning: #d97706;
+    --color-error: #EF4444;
+    --color-info: #0284c7;
+
+    /* Surfaces */
+    --bg-page: #F7FAFC;
+    /* Soft off-white */
+    --bg-surface: #FFFFFF;
+    /* White */
+    --border-color: #E2E8F0;
+    /* Slate-200 */
+
+    /* Text */
+    --text-primary: #0F172A;
+    /* Slate-900 */
+    --text-secondary: #475569;
+    /* Slate-600 */
+
+    /* Buttons */
+    --button-primary-bg: var(--color-primary);
+    --button-primary-text: #FFFFFF;
+    --button-secondary-bg: #EEF2F6;
+    --button-secondary-text: #0F172A;
+
+    /* Fonts */
+}
+
+html,
+body {
+    background: var(--bg-page);
+    color: var(--text-primary);
+}
+
+* {
+    font-family: "Poppins" !important;
+}
+
+button {
+    cursor: pointer;
+}
+
+/* Reusable UI utilities built on theme tokens */
+@layer utilities {
+    .page-center {
+        @apply min-h-screen flex items-center justify-center p-4;
+        background:
+            radial-gradient(1200px 600px at 10% 10%, color-mix(in srgb, var(--color-primary) 14%, transparent), transparent 60%),
+            radial-gradient(1000px 500px at 90% 20%, color-mix(in srgb, var(--color-accent) 12%, transparent), transparent 55%),
+            var(--bg-page);
+    }
+
+    .card {
+        @apply w-full max-w-md rounded-xl p-8 space-y-6;
+        background: var(--bg-surface);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 18px 50px rgba(2, 6, 23, 0.08);
+    }
+
+    .title {
+        @apply text-3xl font-bold;
+        color: var(--text-primary);
+        font-family: var(--font-heading);
+    }
+
+    .subtitle {
+        @apply text-sm;
+        color: var(--text-secondary);
+    }
+
+    .form-group {
+        @apply space-y-2;
+    }
+
+    .label {
+        @apply text-sm font-medium block;
+        color: var(--text-primary);
+    }
+
+    .input {
+        @apply w-full h-11 px-4 rounded-lg border outline-none transition-all duration-200;
+        background: var(--bg-page);
+        color: var(--text-primary);
+        border-color: var(--border-color);
+        font-size: 15px;
+    }
+
+    .input:focus {
+        border-color: var(--color-primary);
+        background: #fff;
+        box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 12%, transparent);
+    }
+
+    .input::placeholder {
+        color: var(--text-secondary);
+        opacity: 0.6;
+    }
+
+    .btn-primary {
+        @apply w-full h-11 rounded-lg font-semibold transition-all duration-200 hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+        color: var(--button-primary-text);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 24px color-mix(in srgb, var(--color-primary) 35%, transparent);
+    }
+
+    .btn-secondary {
+        @apply w-full h-11 rounded-lg font-medium transition-colors;
+        background: var(--button-secondary-bg);
+        color: var(--button-secondary-text);
+    }
+}
