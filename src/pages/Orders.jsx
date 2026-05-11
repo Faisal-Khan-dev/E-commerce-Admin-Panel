@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Pagination,
@@ -26,10 +27,9 @@ import OrderHeader from "../components/Orders/OrderHeader";
 import OrderRow from "../components/Orders/OrderRow";
 import SearchInput from "../components/common/SearchInput";
 import EmptyState from "../components/common/EmptyState";
-import OrderDetailsDialog from "../components/Orders/OrderDetailsDialog";
 import ConfirmDialog from "../components/common/ConfirmDialog";
 
-const TABLE_HEADERS = ["Order ID", "Date", "Customer", "Total", "Status", "Action"];
+const TABLE_HEADERS = ["Order ID", "Customer", "Date", "Total", "Status", "Action"];
 
 const selectStyles = {
   height: 48,
@@ -50,6 +50,7 @@ const selectStyles = {
 };
 
 const Orders = () => {
+  const navigate = useNavigate();
   const socket = useSocket();
   const queryClient = useQueryClient();
 
@@ -57,8 +58,6 @@ const Orders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [priceSort, setPriceSort] = useState("newest");
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [pendingUpdate, setPendingUpdate] = useState(null);
 
@@ -111,15 +110,12 @@ const Orders = () => {
       {
         onSuccess: () => {
           toast.success("Order status updated");
-          if (selectedOrder && selectedOrder._id === id) {
-            setSelectedOrder(prev => ({ ...prev, shipping: { ...prev.shipping, status } }));
-          }
         },
         onError: (err) =>
           toast.error(err?.response?.data?.message || "Failed to update status"),
       }
     );
-  }, [updateStatus, selectedOrder]);
+  }, [updateStatus]);
 
   const handleStatusChange = useCallback(
     (id, status) => {
@@ -147,14 +143,8 @@ const Orders = () => {
   }, []);
 
   const handleOpenDetails = useCallback((order) => {
-    setSelectedOrder(order);
-    setIsDetailsOpen(true);
-  }, []);
-
-  const handleCloseDetails = useCallback(() => {
-    setIsDetailsOpen(false);
-    setSelectedOrder(null);
-  }, []);
+    navigate(`/orders/${order._id}`);
+  }, [navigate]);
 
   return (
     <Box sx={{ width: "100%" }}>
@@ -217,22 +207,31 @@ const Orders = () => {
         <Table>
           <TableHead>
             <TableRow sx={{ bgcolor: "var(--bg-page)" }}>
-              {TABLE_HEADERS.map((head) => (
-                <TableCell
-                  key={head}
-                  sx={{
-                    fontWeight: 700,
-                    color: "var(--text-secondary)",
-                    fontSize: 13,
-                    textTransform: "uppercase",
-                    letterSpacing: 0.5,
-                    py: 1.8,
-                    borderBottom: "1px solid var(--border-color)",
-                  }}
-                >
-                  {head}
-                </TableCell>
-              ))}
+              {TABLE_HEADERS.map((head) => {
+                let align = "left";
+                if (head === "Date" || head === "Status") align = "center";
+                if (head === "Total") align = "right";
+                if (head === "Action") align = "center";
+                
+                return (
+                  <TableCell
+                    key={head}
+                    sx={{
+                      fontWeight: 700,
+                      color: "var(--text-secondary)",
+                      fontSize: 13,
+                      textTransform: "uppercase",
+                      letterSpacing: 0.5,
+                      py: 2,
+                      textAlign: align,
+                      ...(head === "Total" && { pr: 3 }),
+                      borderBottom: "1px solid var(--border-color)",
+                    }}
+                  >
+                    {head}
+                  </TableCell>
+                );
+              })}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -292,13 +291,6 @@ const Orders = () => {
           />
         </Stack>
       )}
-
-      {isDetailsOpen &&
-        <OrderDetailsDialog
-          open={isDetailsOpen}
-          onClose={handleCloseDetails}
-          order={selectedOrder}
-        />}
 
       {isConfirmOpen && <ConfirmDialog
         open={isConfirmOpen}

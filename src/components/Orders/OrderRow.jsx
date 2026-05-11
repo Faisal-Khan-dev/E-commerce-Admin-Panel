@@ -30,18 +30,20 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
                     fontWeight: 600,
                     color: "var(--text-primary)",
                     fontSize: 14,
+                    py: 2,
+                    textAlign: "left",
                 }}
             >
                 {orderNo}
             </TableCell>
 
-            {/* Date */}
-            <TableCell sx={{ color: "var(--text-secondary)", fontSize: 12 }}>
-                {dayjs(order.createdAt).format("MMM DD, YYYY - hh:mm A")}
-            </TableCell>
-
             {/* Customer */}
-            <TableCell>
+            <TableCell
+                sx={{
+                    py: 2,
+                    textAlign: "left",
+                }}
+            >
                 <Stack direction="row" alignItems="center" spacing={1.5}>
                     <Avatar
                         src={`https://api.dicebear.com/7.x/initials/svg?seed=${customerName}&backgroundColor=dbf1fc&textColor=2663eb&fontSize=38`}
@@ -54,8 +56,26 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
                 </Stack>
             </TableCell>
 
+            {/* Date */}
+            <TableCell
+                sx={{
+                    color: "var(--text-secondary)",
+                    fontSize: 12,
+                    py: 2,
+                    textAlign: "center",
+                }}
+            >
+                {dayjs(order.createdAt).format("MMM DD, YYYY")}
+            </TableCell>
+
             {/* Total Amount */}
-            <TableCell>
+            <TableCell
+                sx={{
+                    py: 2,
+                    textAlign: "right",
+                    pr: 3,
+                }}
+            >
                 <Box>
                     <Typography
                         sx={{
@@ -80,7 +100,12 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
             </TableCell>
 
             {/* Shipping Status */}
-            <TableCell>
+            <TableCell
+                sx={{
+                    py: 2,
+                    textAlign: "center",
+                }}
+            >
                 <Chip
                     label={shippingStatus.charAt(0).toUpperCase() + shippingStatus.slice(1)}
                     size="small"
@@ -95,50 +120,44 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
                 />
             </TableCell>
 
-            <TableCell onClick={(e) => e.stopPropagation()}>
-                {shippingStatus !== "cancelled" ? (
-                    <Select
-                        size="small"
-                        value={shippingStatus}
-                        disabled={isUpdating}
-                        onChange={(e) =>
-                            onStatusChange(order._id, e.target.value)
-                        }
-                        variant="outlined"
-                        sx={{
-                            fontSize: 11,
-                            fontWeight: 600,
-                            minWidth: 105,
-                            height: 28,
-                            borderRadius: 1.5,
-                            bgcolor: "var(--bg-page)",
-                            "& .MuiSelect-select": { py: 0.5 },
-                            "& .MuiOutlinedInput-notchedOutline": {
-                                borderColor: "var(--border-color)",
-                            },
-                            "&:hover .MuiOutlinedInput-notchedOutline": {
-                                borderColor: "var(--color-primary)",
-                            },
-                        }}
-                    >
-                        {STATUS_OPTIONS.map((s) => (
-                            <MenuItem key={s} value={s} sx={{ fontSize: 12, fontWeight: 500 }}>
-                                {s.charAt(0).toUpperCase() + s.slice(1)}
-                            </MenuItem>
-                        ))}
-                    </Select>
-                ) : (
-                    <Typography
-                        variant="caption"
-                        sx={{
-                            color: "var(--text-secondary)",
-                            fontSize: 10,
-                            fontWeight: 600,
-                            px: 1
-                        }}>
-                        Locked
-                    </Typography>
-                )}
+            {/* Action */}
+            <TableCell
+                onClick={(e) => e.stopPropagation()}
+                sx={{
+                    py: 2,
+                    textAlign: "center",
+                }}
+            >
+                <Select
+                    size="small"
+                    value={shippingStatus}
+                    disabled={isUpdating}
+                    onChange={(e) =>
+                        onStatusChange(order._id, e.target.value)
+                    }
+                    variant="outlined"
+                    sx={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        minWidth: 105,
+                        height: 28,
+                        borderRadius: 1.5,
+                        bgcolor: "var(--bg-page)",
+                        "& .MuiSelect-select": { py: 0.5 },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "var(--border-color)",
+                        },
+                        "&:hover .MuiOutlinedInput-notchedOutline": {
+                            borderColor: "var(--color-primary)",
+                        },
+                    }}
+                >
+                    {STATUS_OPTIONS.map((s) => (
+                        <MenuItem key={s} value={s} sx={{ fontSize: 12, fontWeight: 500 }}>
+                            {s.charAt(0).toUpperCase() + s.slice(1)}
+                        </MenuItem>
+                    ))}
+                </Select>
             </TableCell>
         </TableRow>
     );

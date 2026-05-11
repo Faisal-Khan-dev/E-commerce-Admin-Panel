@@ -4,6 +4,7 @@ import EditCustomer from "./EditCustomer";
 import Dashboard from "./Dashboard";
 import Login from "./Login";
 import Orders from "./Orders";
+import OrderDetails from "./OrderDetails";
 import Products from "./Products";
 import Categories from "./Categories";
 import AddProduct from "./AddProduct";
@@ -17,6 +18,7 @@ export {
     Dashboard,
     Login,
     Orders,
+    OrderDetails,
     Products,
     Categories,
     AddProduct,
