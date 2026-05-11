@@ -1,18 +1,20 @@
 import api from "../lib/axios"
 
-const getOrders = async (page, limit) => {
-    const res = await api.get(`/orders?page=${page}&limit=${limit}`);
+const getOrders = async (page, limit, search = '', status = '', sort = 'newest') => {
+    let url = `/orders/all?page=${page}&limit=${limit}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (status) url += `&status=${status}`;
+    if (sort) url += `&sort=${sort}`;
+    
+    const res = await api.get(url);
     return res.data;
 }
 
 const updateOrderStatus = async ({ id, status }) => {
-    const res = await api.put(`/orders/${id}`, { status });
+    const res = await api.put(`/orders/${id}`, { 
+        shipping: { status } 
+    });
     return res.data;
 }
 
-const searchOrders = async (query, page, limit) => {
-    const res = await api.get(`/orders/search?query=${query}&page=${page}&limit=${limit}`);
-    return res.data;
-}
-
-export { getOrders, updateOrderStatus, searchOrders };
+export { getOrders, updateOrderStatus };

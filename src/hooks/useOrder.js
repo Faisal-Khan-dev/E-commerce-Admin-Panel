@@ -1,10 +1,10 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query"
-import { getOrders, searchOrders, updateOrderStatus } from "../services/order.js";
+import { getOrders, updateOrderStatus } from "../services/order.js";
 
-const useOrders = (page, limit, options) => {
+const useOrders = (page, limit, search = '', status = '', sort = 'newest', options) => {
     return useQuery({
-        queryKey: ["orders", page],
-        queryFn: () => getOrders(page, limit),
+        queryKey: ["orders", page, search, status, sort],
+        queryFn: () => getOrders(page, limit, search, status, sort),
         placeholderData: keepPreviousData,
         refetchOnWindowFocus: false,
         ...options
@@ -21,15 +21,4 @@ const useUpdateOrderStatus = () => {
     });
 }
 
-const useSearchOrder = (query, page, limit) => {
-    return useQuery({
-        queryKey: ["orders", query, page],
-        queryFn: () => searchOrders(query, page, limit),
-        refetchOnWindowFocus: false,
-        enabled: !!query,
-        placeholderData: keepPreviousData,
-        retry: false
-    })
-}
-
-export { useOrders, useUpdateOrderStatus, useSearchOrder };
+export { useOrders, useUpdateOrderStatus };

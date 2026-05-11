@@ -1,10 +1,10 @@
 import { keepPreviousData, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getAllCustomers, getSingleCustomer, updateCustomer, deleteCustomer } from "../services/customer";
 
-const useCustomers = (search = '') => {
+const useCustomers = (page = 1, limit = 10, search = '', status = '', sort = 'newest') => {
     return useQuery({
-        queryKey: ["customers", search],
-        queryFn: () => getAllCustomers(search),
+        queryKey: ["customers", page, search, status, sort],
+        queryFn: () => getAllCustomers(page, limit, search, status, sort),
         placeholderData: keepPreviousData,
         refetchOnWindowFocus: false
     });

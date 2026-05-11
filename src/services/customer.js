@@ -1,7 +1,12 @@
 import api from "../lib/axios";
 
-const getAllCustomers = async (search = '') => {
-    const res = await api.get(`/users/all?search=${search}`);
+const getAllCustomers = async (page = 1, limit = 10, search = '', status = '', sort = 'newest') => {
+    let url = `/users/all?page=${page}&limit=${limit}`;
+    if (search) url += `&search=${encodeURIComponent(search)}`;
+    if (status) url += `&status=${status}`;
+    if (sort) url += `&sort=${sort}`;
+    
+    const res = await api.get(url);
     return res.data;
 }
 

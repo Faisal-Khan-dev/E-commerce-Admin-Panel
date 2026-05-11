@@ -2,12 +2,15 @@ import { TableRow, TableCell, Avatar, Typography, Stack, Chip, Select, MenuItem,
 import dayjs from "../../lib/dayjs";
 import { getStatusColor } from "../../utils/statusChip";
 
-const STATUS_OPTIONS = ["pending", "confirmed", "delivered", "cancelled"];
+const STATUS_OPTIONS = ["processing", "shipped", "delivered", "cancelled"];
 
 const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
-    const status = getStatusColor(order.status);
-    const customerName = order.customer?.name || "Unknown";
-    const totalItems = order.items?.length || 0;
+    const shippingStatus = order.shipping?.status || "processing";
+    const statusColor = getStatusColor(shippingStatus);
+    const customerName = `${order.customerInfo?.firstName || ""} ${order.customerInfo?.lastName || ""}`.trim() || "Unknown";
+    const customerEmail = order.customerInfo?.email || "No email";
+    const totalItems = order.orderItems?.length || 0;
+    const orderNo = order.orderNo || "N/A"; // Use orderNo field
 
     return (
         <TableRow
@@ -29,7 +32,7 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
                     fontSize: 14,
                 }}
             >
-                {order.orderNo}
+                {orderNo}
             </TableCell>
 
             {/* Date */}
@@ -46,11 +49,12 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
                     />
                     <Typography sx={{ fontWeight: 500, fontSize: 12 }}>
                         {customerName}
-                        <p style={{ margin: 0, fontSize: 10, color: "var(--text-secondary)" }}>{order.customer?.email || "No email"}</p>
+                        <p style={{ margin: 0, fontSize: 10, color: "var(--text-secondary)" }}>{customerEmail}</p>
                     </Typography>
                 </Stack>
             </TableCell>
 
+            {/* Total Amount */}
             <TableCell>
                 <Box>
                     <Typography
@@ -60,7 +64,7 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
                             fontSize: 12,
                         }}
                     >
-                        Rs. {order.grandTotal.toLocaleString()}
+                        Rs. {order.totalAmount?.toLocaleString()}
                     </Typography>
                     <Typography
                         sx={{
@@ -70,19 +74,19 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
                             opacity: 0.8
                         }}
                     >
-                        {totalItems} item{(totalItems > 1) ? "s" : ""}
+                        {totalItems} item{totalItems !== 1 ? "s" : ""}
                     </Typography>
                 </Box>
             </TableCell>
 
-            {/* Status */}
+            {/* Shipping Status */}
             <TableCell>
                 <Chip
-                    label={order.status?.charAt(0).toUpperCase() + order.status?.slice(1)}
+                    label={shippingStatus.charAt(0).toUpperCase() + shippingStatus.slice(1)}
                     size="small"
                     sx={{
-                        bgcolor: status.bg,
-                        color: status.text,
+                        bgcolor: statusColor.bg,
+                        color: statusColor.text,
                         fontWeight: 600,
                         fontSize: 12,
                         height: 26,
@@ -92,10 +96,10 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
             </TableCell>
 
             <TableCell onClick={(e) => e.stopPropagation()}>
-                {order.status !== "cancelled" ? (
+                {shippingStatus !== "cancelled" ? (
                     <Select
                         size="small"
-                        value={order.status}
+                        value={shippingStatus}
                         disabled={isUpdating}
                         onChange={(e) =>
                             onStatusChange(order._id, e.target.value)

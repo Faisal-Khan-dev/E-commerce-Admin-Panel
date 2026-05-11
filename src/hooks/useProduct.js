@@ -1,21 +1,21 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { getAllProducts, addProduct, deleteProduct, updateProduct, getProductById } from "../services/product";
+import { getAllProducts, getProductBySlug, addProduct, deleteProduct, updateProduct } from "../services/product";
 
-const useProducts = () => {
+const useProducts = (search = "", category = "", minPrice = "", maxPrice = "", sort = "newest", page = 1, limit = 10) => {
     return useQuery({
-        queryKey: ["products"],
-        queryFn: getAllProducts,
+        queryKey: ["products", search, category, minPrice, maxPrice, sort, page, limit],
+        queryFn: () => getAllProducts(search, category, minPrice, maxPrice, sort, page, limit),
+        keepPreviousData: true,
         refetchOnWindowFocus: false,
-        select: (data) => data?.products || [],
     });
 }
 
-const useProduct = (id) => {
+const useProduct = (slug) => {
     return useQuery({
-        queryKey: ["product", id],
-        queryFn: () => getProductById(id),
-        enabled: !!id,
-        select: (data) => data?.product || {},
+        queryKey: ["product", slug],
+        queryFn: () => getProductBySlug(slug),
+        enabled: !!slug,
+        staleTime: 1000 * 60 * 5,
     });
 }
 
@@ -46,7 +46,9 @@ const useUpdateProduct = () => {
 
     return useMutation({
         mutationFn: updateProduct,
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["products"] })
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+        }
     });
 }
 

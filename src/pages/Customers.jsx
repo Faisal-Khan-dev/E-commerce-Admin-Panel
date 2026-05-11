@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Stack } from "@mui/material";
+import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, Stack, MenuItem, Select, FormControl, Pagination } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { SyncLoader } from "react-spinners";
 import { useCustomers } from "../hooks/useCustomer";
@@ -9,39 +9,109 @@ import SearchInput from "../components/common/SearchInput";
 import EmptyState from "../components/common/EmptyState";
 import useDebounce from "../hooks/useDebounce";
 import { MdAdd } from "react-icons/md";
+import { ROWS_PER_PAGE } from "../constants";
+
+const selectStyles = {
+  height: 48,
+  borderRadius: 2.5,
+  bgcolor: "var(--bg-surface)",
+  color: "var(--text-secondary)",
+  fontSize: 14,
+  border: "1px solid var(--border-color)",
+  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+  transition: "all 0.2s ease",
+  "&:hover": {
+    borderColor: "color-mix(in srgb, var(--color-primary) 40%, var(--border-color))",
+  },
+  "&.Mui-focused": {
+    borderColor: "var(--color-primary)",
+    boxShadow: "0 0 0 3px color-mix(in srgb, var(--color-primary) 12%, transparent)",
+  },
+};
 
 const Customers = () => {
   const navigate = useNavigate();
 
+  const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
+
   const debouncedSearch = useDebounce(searchTerm, 800);
-  const { data: listData, isLoading } = useCustomers(debouncedSearch);
+  const { data = {}, isLoading } = useCustomers(page, ROWS_PER_PAGE, debouncedSearch, statusFilter, sortBy);
 
-  const customers = listData?.users || [];
-  const totalCustomers = listData?.users?.length || 0;
+  const customers = data?.users || [];
+  const pagination = data?.pagination || {};
+  const totalCustomers = pagination.total || 0;
+  const totalPages = pagination.pages || 1;
   const isData = customers.length === 0 && !isLoading;
-
 
   const handleSearchChange = useCallback((e) => {
     setSearchTerm(e.target.value);
+    setPage(1);
   }, []);
+
+  const handleStatusChange = useCallback((e) => {
+    setStatusFilter(e.target.value);
+    setPage(1);
+  }, []);
+
+  const handleSortChange = useCallback((e) => {
+    setSortBy(e.target.value);
+    setPage(1);
+  }, []);
+
+  const handlePageChange = useCallback((_, v) => setPage(v), []);
 
   return (
     <Box sx={{ width: "100%" }}>
       <CustomerHeader count={totalCustomers} />
 
-      <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 3 }}>
+      <Stack 
+        direction="row" 
+        alignItems="center" 
+        spacing={2} 
+        sx={{ mb: 3, flexWrap: "wrap", gap: 2, justifyContent: "space-between" }}
+      >
         <SearchInput
-          placeholder="Search by name or email..."
+          placeholder="Search by name, email or city..."
           value={searchTerm}
           onChange={handleSearchChange}
-          sx={{ flex: 1, maxWidth: "none" }}
+          sx={{ flex: 1, minWidth: 280 }}
         />
+
+        <FormControl sx={{ minWidth: 180 }}>
+          <Select
+            value={statusFilter}
+            onChange={handleStatusChange}
+            displayEmpty
+            sx={selectStyles}
+          >
+            <MenuItem value="">All Status</MenuItem>
+            <MenuItem value="active">Active</MenuItem>
+            <MenuItem value="inactive">Inactive</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl sx={{ minWidth: 180 }}>
+          <Select
+            value={sortBy}
+            onChange={handleSortChange}
+            displayEmpty
+            sx={selectStyles}
+          >
+            <MenuItem value="newest">Newest First</MenuItem>
+            <MenuItem value="oldest">Oldest First</MenuItem>
+            <MenuItem value="a-z">Name: A to Z</MenuItem>
+            <MenuItem value="z-a">Name: Z to A</MenuItem>
+          </Select>
+        </FormControl>
+
         <Button
           variant="contained"
           startIcon={<MdAdd size={20} />}
           onClick={() => navigate("/add-customer")}
-          sx={{ textTransform: "none", borderRadius: 2, height: 45, fontWeight: 600, whiteSpace: "nowrap" }}
+          sx={{ textTransform: "none", borderRadius: 2, height: 48, fontWeight: 600, whiteSpace: "nowrap" }}
         >
           Add Customer
         </Button>
@@ -94,6 +164,29 @@ const Customers = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {!isLoading && customers.length > 0 && totalPages > 1 && (
+        <Stack alignItems="center" sx={{ mt: 3 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={handlePageChange}
+            color="primary"
+            size="medium"
+            sx={{
+              "& .MuiPaginationItem-root": {
+                borderRadius: 1.5,
+                border: "1px solid var(--border-color)",
+              },
+              "& .MuiPaginationItem-page.Mui-selected": {
+                bgcolor: "var(--color-primary)",
+                borderColor: "var(--color-primary)",
+                color: "white",
+              },
+            }}
+          />
+        </Stack>
+      )}
     </Box>
   );
 };

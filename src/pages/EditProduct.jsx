@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Grid, Typography, Box, Paper, IconButton, Stack, CircularProgress } from "@mui/material";
+import { Grid, Typography, Box, Paper, IconButton, Stack, Avatar, CircularProgress } from "@mui/material";
 import { MdAddPhotoAlternate, MdClose, MdArrowBack } from "react-icons/md";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -8,22 +8,46 @@ import CustomInput from "../components/common/CustomInput";
 import CustomButton from "../components/common/CustomButton";
 import CustomTextarea from "../components/common/CustomTextArea";
 import { useProduct, useUpdateProduct } from "../hooks/useProduct";
-import { useActiveCategories } from "../hooks/useCategory";
 import CustomSelectBox from "../components/common/CustomSelectBox";
 import toast from "react-hot-toast";
 import { SyncLoader } from "react-spinners";
 
 const EditProduct = () => {
-    const { id } = useParams();
+    const { id } = useParams(); // This should be slug
     const navigate = useNavigate();
-    const [images, setImages] = useState([]);
-    const [existingImages, setExistingImages] = useState([]);
+    const [image, setImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [currentImageUrl, setCurrentImageUrl] = useState(null);
 
-    const { data: product, isLoading, error } = useProduct(id);
+    const { data: product = {}, isLoading, error } = useProduct(id);
     const { mutate: updateMutation, isPending } = useUpdateProduct();
-    const { data: categories = [] } = useActiveCategories();
 
-    const { control, handleSubmit, formState: { errors, isSubmitting }, setError, reset } = useForm();
+    const { control, handleSubmit, watch, formState: { errors }, setError, reset } = useForm({
+        defaultValues: {
+            name: "",
+            slug: "",
+            description: "",
+            originalPrice: "",
+            salePrice: "",
+            category: "",
+            stock: true,
+        }
+    });
+
+    const nameValue = watch("name");
+
+    // Auto-generate slug from name
+    const generatedSlug = useMemo(() => {
+        if (nameValue) {
+            return nameValue
+                .toLowerCase()
+                .trim()
+                .replace(/[^\w\s-]/g, "")
+                .replace(/\s+/g, "-")
+                .replace(/-+/g, "-");
+        }
+        return "";
+    }, [nameValue]);
 
     useEffect(() => {
         if (error) {
@@ -33,72 +57,66 @@ const EditProduct = () => {
     }, [error, navigate]);
 
     useEffect(() => {
-        if (product) {
+        if (product._id) {
             reset({
-                title: product.title,
-                description: product.description,
-                category: product.category?._id || product.category,
-                stock: product.stock,
-                discount: product.discount,
-                sellingPrice: product.sellingPrice,
-                buyingPrice: product.buyingPrice,
+                name: product.name || "",
+                slug: product.slug || "",
+                description: product.description || "",
+                originalPrice: product.originalPrice || "",
+                salePrice: product.salePrice || "",
+                category: product.category || "",
+                stock: product.stock !== false,
             });
-            setExistingImages(product.images || []);
+            if (product.images && product.images[0]) {
+                setCurrentImageUrl(product.images[0]);
+            }
         }
     }, [product, reset]);
 
     const handleImageChange = (e) => {
-        const files = Array.from(e.target.files);
-        const remaining = 6 - (images.length + existingImages.length);
+        const file = e.target.files?.[0];
+        if (!file) return;
 
-        if (remaining <= 0) {
-            toast.error("Maximum 6 images allowed total");
+        if (file.size > 5 * 1024 * 1024) {
+            toast.error("Image size must be less than 5MB");
             return;
         }
 
-        const newImages = files.slice(0, remaining).map((file) => ({
-            file,
-            url: URL.createObjectURL(file),
-        }));
-        setImages((prev) => [...prev, ...newImages]);
-
-        if (existingImages.length > 0) {
-            toast.success("New images added.");
+        if (!file.type.startsWith("image/")) {
+            toast.error("Please select a valid image file");
+            return;
         }
+
+        setImage(file);
+        setImagePreview(URL.createObjectURL(file));
     };
 
-    const removeNewImage = (idx) => {
-        setImages((prev) => prev.filter((_, i) => i !== idx));
+    const removeImage = () => {
+        setImage(null);
+        setImagePreview(null);
     };
-
-    const categoryOptions = categories.map((cat) => ({
-        label: cat.title,
-        value: cat._id,
-    }));
 
     const onSubmit = (data) => {
         const formData = new FormData();
-        formData.append("title", data.title.trim());
-        formData.append("description", data.description.trim());
-        formData.append("category", data.category);
-        formData.append("stock", Number(data.stock || 0));
-        formData.append("discount", Number(data.discount || 0));
-        formData.append("sellingPrice", Number(data.sellingPrice));
-        formData.append("buyingPrice", Number(data.buyingPrice || 0));
+        formData.append("name", data.name.trim());
+        formData.append("slug", data.slug || generatedSlug);
+        formData.append("description", data.description?.trim() || "");
+        formData.append("originalPrice", Number(data.originalPrice));
+        formData.append("salePrice", Number(data.salePrice || 0));
+        formData.append("category", data.category || "");
+        formData.append("stock", data.stock === true || data.stock === "true");
 
-        if (images.length > 0) {
-            images.forEach((img) => {
-                formData.append("images", img.file);
-            });
+        if (image) {
+            formData.append("image", image);
         }
 
-        updateMutation({ id, formData }, {
+        updateMutation({ id: product._id, formData }, {
             onSuccess: (res) => {
                 toast.success(res.message || "Product updated successfully");
                 navigate("/products");
             },
             onError: (err) => {
-                const message = err?.response?.data?.message || "Product update failed";
+                const message = err?.response?.data?.message || "Failed to update product";
                 setError("root", { message });
                 toast.error(message);
             }
@@ -107,179 +125,129 @@ const EditProduct = () => {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center py-32">
-                <SyncLoader size={10} color="var(--color-primary)" />
-            </div>
+            <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", minHeight: "60vh" }}>
+                <SyncLoader size={8} color="var(--color-primary)" />
+            </Box>
         );
     }
 
     return (
-        <Box sx={{ width: "100%" }}>
+        <Box sx={{ width: "100%", maxWidth: 900, margin: "0 auto" }}>
             {/* Header */}
             <Stack
                 direction="row"
                 alignItems="center"
-                justifyContent="space-between"
+                spacing={1.5}
                 sx={{ mb: 3 }}
             >
+                <IconButton
+                    onClick={() => navigate(-1)}
+                    sx={{
+                        bgcolor: "var(--bg-surface)",
+                        border: "1px solid var(--border-color)",
+                        "&:hover": { bgcolor: "var(--bg-page)" },
+                    }}
+                >
+                    <MdArrowBack size={20} />
+                </IconButton>
                 <Box>
-                    <Stack direction="row" alignItems="center" spacing={1.5}>
-                        <IconButton
-                            onClick={() => navigate(-1)}
-                            sx={{
-                                bgcolor: "var(--bg-surface)",
-                                border: "1px solid var(--border-color)",
-                                "&:hover": { bgcolor: "var(--bg-page)" },
-                            }}
-                        >
-                            <MdArrowBack size={20} />
-                        </IconButton>
-                        <Box>
-                            <Typography
-                                variant="h5"
-                                sx={{
-                                    fontWeight: 800,
-                                    color: "var(--text-primary)",
-                                    fontFamily: "var(--font-heading)",
-                                }}
-                            >
-                                Edit Product
-                            </Typography>
-                            <Typography
-                                variant="body2"
-                                sx={{ color: "var(--text-secondary)" }}
-                            >
-                                Update product details and inventory
-                            </Typography>
-                        </Box>
-                    </Stack>
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontWeight: 800,
+                            color: "var(--text-primary)",
+                        }}
+                    >
+                        Edit Product
+                    </Typography>
+                    <Typography
+                        variant="body2"
+                        sx={{ color: "var(--text-secondary)" }}
+                    >
+                        Update product details
+                    </Typography>
                 </Box>
             </Stack>
 
             <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid container spacing={3}>
-                    {/* LEFT: Product Information */}
-                    <Grid size={{ xs: 12, md: 6 }}>
+                    {/* Product Information */}
+                    <Grid size={{ xs: 12 }}>
                         <Paper
                             elevation={0}
                             sx={{
                                 p: 3,
-                                borderRadius: 3,
-                                height: "100%",
+                                borderRadius: 2.5,
                                 bgcolor: "var(--bg-surface)",
                                 border: "1px solid var(--border-color)",
                             }}
                         >
                             <Typography
                                 variant="subtitle1"
-                                sx={{ mb: 3, fontWeight: 700, color: "var(--text-primary)" }}
+                                sx={{ mb: 2.5, fontWeight: 700, color: "var(--text-primary)" }}
                             >
                                 Product Information
                             </Typography>
 
                             <Grid container spacing={2.5}>
-                                <Grid size={12}>
+                                <Grid size={{ xs: 12 }}>
                                     <Typography
                                         variant="body2"
-                                        sx={{
-                                            mb: 0.5,
-                                            fontWeight: 600,
-                                            color: "var(--text-primary)",
-                                        }}
+                                        sx={{ mb: 0.5, fontWeight: 600, color: "var(--text-primary)" }}
                                     >
-                                        Product Title <span className="text-red-500">*</span>
+                                        Product Name <span style={{ color: "#ef4444" }}>*</span>
                                     </Typography>
                                     <Controller
-                                        name="title"
+                                        name="name"
                                         control={control}
-                                        rules={{ required: "Title is required" }}
+                                        rules={{ required: "Product name is required" }}
                                         render={({ field }) => (
                                             <CustomInput
                                                 {...field}
-                                                placeholder="Enter product title"
-                                                error={errors.title}
+                                                placeholder="Enter product name"
+                                                error={!!errors.name}
+                                                helperText={errors.name?.message}
                                                 height={44}
-                                                helperText={errors.title?.message}
                                             />
                                         )}
                                     />
                                 </Grid>
 
-                                <Grid size={6}>
+                                <Grid size={{ xs: 12 }}>
                                     <Typography
                                         variant="body2"
-                                        sx={{
-                                            mb: 0.5,
-                                            fontWeight: 600,
-                                            color: "var(--text-primary)",
-                                        }}
+                                        sx={{ mb: 0.5, fontWeight: 600, color: "var(--text-primary)" }}
                                     >
-                                        Stock Quantity <span style={{ color: "#ef4444" }}>*</span>
+                                        Product Slug <span style={{ color: "#ef4444" }}>*</span>
                                     </Typography>
                                     <Controller
-                                        name="stock"
+                                        name="slug"
+                                        control={control}
+                                        rules={{ required: "Slug is required" }}
+                                        render={({ field }) => (
+                                            <CustomInput
+                                                {...field}
+                                                placeholder={generatedSlug || "Auto-generated from name"}
+                                                error={!!errors.slug}
+                                                helperText={errors.slug?.message || "URL-friendly identifier"}
+                                                height={44}
+                                            />
+                                        )}
+                                    />
+                                </Grid>
+
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{ mb: 0.5, fontWeight: 600, color: "var(--text-primary)" }}
+                                    >
+                                        Original Price <span style={{ color: "#ef4444" }}>*</span>
+                                    </Typography>
+                                    <Controller
+                                        name="originalPrice"
                                         control={control}
                                         rules={{
-                                            required: "Stock is required",
-                                            min: { value: 0, message: "Stock cannot be negative" },
-                                        }}
-                                        render={({ field }) => (
-                                            <CustomInput
-                                                {...field}
-                                                type="number"
-                                                placeholder="0"
-                                                height={44}
-                                                error={!!errors.stock}
-                                                helperText={errors.stock?.message}
-                                            />
-                                        )}
-                                    />
-                                </Grid>
-
-                                <Grid size={6}>
-                                    <Typography
-                                        variant="body2"
-                                        sx={{
-                                            mb: 0.5,
-                                            fontWeight: 600,
-                                            color: "var(--text-secondary)",
-                                        }}
-                                    >
-                                        Cost Price{" "}
-                                        <span style={{ fontSize: 11, opacity: 0.7 }}>
-                                            (Optional)
-                                        </span>
-                                    </Typography>
-                                    <Controller
-                                        name="buyingPrice"
-                                        control={control}
-                                        render={({ field }) => (
-                                            <CustomInput
-                                                {...field}
-                                                type="number"
-                                                placeholder="Rs. 0"
-                                                height={44}
-                                            />
-                                        )}
-                                    />
-                                </Grid>
-
-                                <Grid size={6}>
-                                    <Typography
-                                        variant="body2"
-                                        sx={{
-                                            mb: 0.5,
-                                            fontWeight: 600,
-                                            color: "var(--color-primary)",
-                                        }}
-                                    >
-                                        Sale Price <span style={{ color: "#ef4444" }}>*</span>
-                                    </Typography>
-                                    <Controller
-                                        name="sellingPrice"
-                                        control={control}
-                                        rules={{
-                                            required: "Sale price is required",
+                                            required: "Original price is required",
                                             min: { value: 1, message: "Price must be greater than 0" },
                                         }}
                                         render={({ field }) => (
@@ -287,68 +255,103 @@ const EditProduct = () => {
                                                 {...field}
                                                 type="number"
                                                 placeholder="Rs. 0"
-                                                error={!!errors.sellingPrice}
-                                                helperText={errors.sellingPrice?.message}
+                                                error={!!errors.originalPrice}
+                                                helperText={errors.originalPrice?.message}
                                                 height={44}
                                             />
                                         )}
                                     />
                                 </Grid>
 
-                                <Grid size={6}>
+                                <Grid size={{ xs: 12, md: 6 }}>
                                     <Typography
                                         variant="body2"
-                                        sx={{
-                                            mb: 0.5,
-                                            fontWeight: 600,
-                                            color: "var(--text-primary)",
-                                        }}
+                                        sx={{ mb: 0.5, fontWeight: 600, color: "var(--text-primary)" }}
                                     >
-                                        Discount (%)
+                                        Sale Price
                                     </Typography>
                                     <Controller
-                                        name="discount"
+                                        name="salePrice"
                                         control={control}
                                         rules={{
-                                            min: { value: 0, message: "Discount cannot be negative" },
-                                            max: { value: 100, message: "Discount cannot exceed 100%" },
+                                            min: { value: 0, message: "Sale price cannot be negative" },
                                         }}
                                         render={({ field }) => (
                                             <CustomInput
                                                 {...field}
                                                 type="number"
-                                                placeholder="0"
+                                                placeholder="Rs. 0 (optional)"
+                                                error={!!errors.salePrice}
+                                                helperText={errors.salePrice?.message || "Leave empty if no discount"}
                                                 height={44}
-                                                error={!!errors.discount}
-                                                helperText={errors.discount?.message}
                                             />
                                         )}
                                     />
                                 </Grid>
 
-                                <Grid size={12}>
+                                <Grid size={{ xs: 12, md: 6 }}>
                                     <Typography
                                         variant="body2"
-                                        sx={{
-                                            mb: 0.5,
-                                            fontWeight: 600,
-                                            color: "var(--text-primary)",
-                                        }}
+                                        sx={{ mb: 0.5, fontWeight: 600, color: "var(--text-primary)" }}
                                     >
-                                        Category <span style={{ color: "#ef4444" }}>*</span>
+                                        Category
                                     </Typography>
                                     <Controller
                                         name="category"
                                         control={control}
-                                        rules={{ required: "Category is required" }}
                                         render={({ field }) => (
-                                            <CustomSelectBox
-                                                value={field.value || ""}
-                                                onChange={field.onChange}
-                                                options={categoryOptions}
-                                                placeholder="Select category"
+                                            <CustomInput
+                                                {...field}
+                                                placeholder="Enter category (e.g., Electronics)"
                                                 error={!!errors.category}
                                                 helperText={errors.category?.message}
+                                                height={44}
+                                            />
+                                        )}
+                                    />
+                                </Grid>
+
+                                <Grid size={{ xs: 12, md: 6 }}>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{ mb: 0.5, fontWeight: 600, color: "var(--text-primary)" }}
+                                    >
+                                        Stock Status
+                                    </Typography>
+                                    <Controller
+                                        name="stock"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <CustomSelectBox
+                                                value={field.value ? "true" : "false"}
+                                                onChange={(e) => field.onChange(e.target.value === "true")}
+                                                options={[
+                                                    { label: "In Stock", value: "true" },
+                                                    { label: "Out of Stock", value: "false" },
+                                                ]}
+                                                height={44}
+                                            />
+                                        )}
+                                    />
+                                </Grid>
+
+                                <Grid size={{ xs: 12 }}>
+                                    <Typography
+                                        variant="body2"
+                                        sx={{ mb: 0.5, fontWeight: 600, color: "var(--text-primary)" }}
+                                    >
+                                        Description
+                                    </Typography>
+                                    <Controller
+                                        name="description"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <CustomTextarea
+                                                {...field}
+                                                error={!!errors.description}
+                                                helperText={errors.description?.message}
+                                                placeholder="Describe your product features and details..."
+                                                sx={{ minHeight: 120 }}
                                             />
                                         )}
                                     />
@@ -357,182 +360,135 @@ const EditProduct = () => {
                         </Paper>
                     </Grid>
 
-                    {/* RIGHT: Description */}
-                    <Grid size={{ xs: 12, md: 6 }}>
+                    {/* Product Image */}
+                    <Grid size={{ xs: 12 }}>
                         <Paper
                             elevation={0}
                             sx={{
                                 p: 3,
-                                borderRadius: 3,
-                                height: "100%",
+                                borderRadius: 2.5,
                                 bgcolor: "var(--bg-surface)",
                                 border: "1px solid var(--border-color)",
-                                display: "flex",
-                                flexDirection: "column",
                             }}
                         >
                             <Typography
                                 variant="subtitle1"
-                                sx={{ mb: 3, fontWeight: 700, color: "var(--text-primary)" }}
+                                sx={{ mb: 2.5, fontWeight: 700, color: "var(--text-primary)" }}
                             >
-                                Product Description
+                                Product Image
                             </Typography>
-                            <Typography
-                                variant="body2"
-                                sx={{ mb: 0.5, fontWeight: 600, color: "var(--text-primary)" }}
-                            >
-                                Detailed Description
-                            </Typography>
-                            <Controller
-                                name="description"
-                                control={control}
-                                rules={{ required: "Description is required." }}
-                                render={({ field }) => (
-                                    <CustomTextarea
-                                        {...field}
-                                        error={!!errors.description}
-                                        helperText={errors.description?.message}
-                                        placeholder="Describe your product features, specifications, and details..."
-                                        height="100%"
-                                        sx={{ flex: 1 }}
+
+                            {!imagePreview ? (
+                                <>
+                                    {currentImageUrl && (
+                                        <Box sx={{ mb: 2 }}>
+                                            <Typography variant="caption" sx={{ color: "var(--text-secondary)" }}>
+                                                Current Image
+                                            </Typography>
+                                            <Avatar
+                                                src={currentImageUrl}
+                                                variant="rounded"
+                                                sx={{ width: 120, height: 120, mt: 1 }}
+                                            />
+                                        </Box>
+                                    )}
+                                    <Box
+                                        component="label"
+                                        sx={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            border: "2px dashed var(--border-color)",
+                                            borderRadius: 2.5,
+                                            p: 3,
+                                            minHeight: 150,
+                                            cursor: "pointer",
+                                            bgcolor: "var(--bg-page)",
+                                            transition: "all 0.2s ease",
+                                            "&:hover": {
+                                                borderColor: "var(--color-primary)",
+                                                bgcolor: "color-mix(in srgb, var(--color-primary) 4%, var(--bg-page))",
+                                            },
+                                        }}
+                                    >
+                                        <input
+                                            type="file"
+                                            hidden
+                                            onChange={handleImageChange}
+                                            accept="image/*"
+                                        />
+                                        <Box
+                                            sx={{
+                                                width: 48,
+                                                height: 48,
+                                                borderRadius: "50%",
+                                                bgcolor: "color-mix(in srgb, var(--color-primary) 10%, transparent)",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                mb: 1,
+                                            }}
+                                        >
+                                            <MdAddPhotoAlternate size={24} color="var(--color-primary)" />
+                                        </Box>
+                                        <Typography variant="body2" sx={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                                            Click to update image
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ color: "var(--text-secondary)", mt: 0.3 }}>
+                                            PNG, JPG up to 5MB
+                                        </Typography>
+                                    </Box>
+                                </>
+                            ) : (
+                                <Box sx={{ position: "relative", display: "inline-block" }}>
+                                    <Avatar
+                                        src={imagePreview}
+                                        variant="rounded"
+                                        sx={{ width: 150, height: 150 }}
                                     />
-                                )}
-                            />
+                                    <IconButton
+                                        size="small"
+                                        onClick={removeImage}
+                                        sx={{
+                                            position: "absolute",
+                                            top: -10,
+                                            right: -10,
+                                            bgcolor: "#ef4444",
+                                            color: "white",
+                                            "&:hover": { bgcolor: "#dc2626" },
+                                        }}
+                                    >
+                                        <MdClose size={18} />
+                                    </IconButton>
+                                </Box>
+                            )}
                         </Paper>
                     </Grid>
 
-                    {/* FULL WIDTH: Images */}
-                    <Grid size={12}>
-                        <Paper
-                            elevation={0}
-                            sx={{
-                                p: 3,
-                                borderRadius: 3,
-                                bgcolor: "var(--bg-surface)",
-                                border: "1px solid var(--border-color)",
-                            }}
-                        >
-                            <Typography
-                                variant="subtitle1"
-                                sx={{ mb: 2, fontWeight: 700, color: "var(--text-primary)" }}
-                            >
-                                Product Images
-                            </Typography>
-
-                            {/* Combined Image Gallery */}
-                            <Grid container spacing={2} sx={{ mb: 3 }}>
-                                {/* Existing Images */}
-                                {existingImages.map((img, index) => (
-                                    <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`existing-${index}`}>
-                                        <Box sx={{ position: "relative", pt: "100%", borderRadius: 2, overflow: "hidden", border: "1px solid var(--border-color)", opacity: images.length > 0 ? 0.5 : 1 }}>
-                                            <img src={img.url} alt="" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-                                            {images.length > 0 && (
-                                                <Box sx={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", bgcolor: "rgba(0,0,0,0.4)", display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                                    <Typography variant="caption" sx={{ color: '#fff', fontWeight: 600 }}>REPLACING</Typography>
-                                                </Box>
-                                            )}
-                                        </Box>
-                                    </Grid>
-                                ))}
-                                {/* New Images */}
-                                {images.map((img, index) => (
-                                    <Grid size={{ xs: 6, sm: 4, md: 2 }} key={`new-${index}`}>
-                                        <Box sx={{ position: "relative", pt: "100%", borderRadius: 2, overflow: "hidden", border: "2px solid var(--color-primary)" }}>
-                                            <img src={img.url} alt="" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-                                            <IconButton onClick={() => removeNewImage(index)} size="small" sx={{ position: "absolute", top: 6, right: 6, bgcolor: "rgba(239, 68, 68, 0.9)", color: "#fff", width: 24, height: 24, "&:hover": { bgcolor: "#dc2626" } }}>
-                                                <MdClose size={14} />
-                                            </IconButton>
-                                        </Box>
-                                    </Grid>
-                                ))}
-                            </Grid>
-
-                            <Box
-                                component="label"
+                    {/* Action Buttons */}
+                    <Grid size={{ xs: 12 }}>
+                        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} justifyContent="flex-end">
+                            <CustomButton
+                                onClick={() => navigate(-1)}
+                                label="Cancel"
                                 sx={{
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    border: "2px dashed var(--border-color)",
-                                    borderRadius: 3,
-                                    p: 4,
-                                    height: 250,
-                                    cursor: "pointer",
-                                    bgcolor: "var(--bg-page)",
-                                    transition: "all 0.2s ease",
-                                    "&:hover": {
-                                        borderColor: "var(--color-primary)",
-                                        bgcolor:
-                                            "color-mix(in srgb, var(--color-primary) 4%, var(--bg-page))",
-                                    },
+                                    order: { xs: 2, sm: 1 },
+                                    bgcolor: "var(--bg-surface)",
+                                    color: "var(--text-primary)",
+                                    border: "1px solid var(--border-color)",
+                                    "&:hover": { bgcolor: "var(--bg-page)" },
                                 }}
-                            >
-                                <input type="file" multiple hidden onChange={handleImageChange} accept="image/*" />
-                                <Box
-                                    sx={{
-                                        width: 56,
-                                        height: 56,
-                                        borderRadius: "50%",
-                                        bgcolor:
-                                            "color-mix(in srgb, var(--color-primary) 10%, transparent)",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        mb: 1.5,
-                                    }}
-                                >
-                                    <MdAddPhotoAlternate size={28} color="var(--color-primary)" />
-                                </Box>
-                                <Typography variant="body2" sx={{ fontWeight: 600, color: "var(--text-primary)" }}>Upload New Images</Typography>
-                                <Typography variant="caption" sx={{ color: "var(--text-secondary)", mt: 0.5 }}>Note: Adding new images will replace all existing ones</Typography>
-                            </Box>
-                        </Paper>
+                            />
+                            <CustomButton
+                                type="submit"
+                                label={isPending ? "Updating..." : "Update Product"}
+                                disabled={isPending}
+                                sx={{ order: { xs: 1, sm: 2 } }}
+                            />
+                        </Stack>
                     </Grid>
                 </Grid>
-
-                {/* Action Buttons */}
-                <Stack
-                    direction="row"
-                    justifyContent="flex-end"
-                    spacing={2}
-                    sx={{ mt: 3 }}
-                >
-                    <CustomButton
-                        type="button"
-                        onClick={() => navigate(-1)}
-                        bgColor="var(--bg-surface)"
-                        color="var(--text-primary)"
-                        width={120}
-                        height={44}
-                        sx={{
-                            border: "1px solid var(--border-color)",
-                            boxShadow: "none",
-                            "&:hover": {
-                                bgcolor: "var(--bg-page)",
-                            },
-                        }}
-                    >
-                        Cancel
-                    </CustomButton>
-                    <CustomButton
-                        type="submit"
-                        loading={isSubmitting || isPending}
-                        width={160}
-                        height={44}
-                        sx={{
-                            background:
-                                "linear-gradient(135deg, var(--color-primary), var(--color-accent))",
-                            fontWeight: 600,
-                            "&:hover": {
-                                boxShadow:
-                                    "0 8px 20px color-mix(in srgb, var(--color-primary) 30%, transparent)",
-                            },
-                        }}
-                    >
-                        Update Product
-                    </CustomButton>
-                </Stack>
             </form>
         </Box>
     );

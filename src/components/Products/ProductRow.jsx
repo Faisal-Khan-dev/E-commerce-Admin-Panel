@@ -1,41 +1,59 @@
-import { TableRow, TableCell, Avatar, Typography, Stack, Chip, Switch, Tooltip, IconButton } from "@mui/material";
+import { TableRow, TableCell, Avatar, Typography, Stack, Chip, Tooltip, IconButton } from "@mui/material";
 import { MdEdit, MdDeleteOutline } from "react-icons/md";
-import { getStockStatusColor } from "../../utils/statusChip";
 
-const ProductRow = ({ product, onEdit, onDelete, onTogglePublish, onToggleFeatured }) => {
-
-    const stockStyle = getStockStatusColor(product.stock);
+const ProductRow = ({ product, onEdit, onDelete }) => {
+    const stockLabel = product.stock ? "In Stock" : "Out of Stock";
+    const stockColor = product.stock ? { bg: "#d1fae5", text: "#15803d" } : { bg: "#fee2e2", text: "#991b1b" };
 
     return (
         <TableRow
             sx={{
-                transition: "background 0.15s",
-                "&:hover": { bgcolor: "var(--bg-page)" },
+                borderBottom: "1px solid var(--border-color)",
+                transition: "background 0.2s ease",
+                "&:last-child": {
+                    borderBottom: "none"
+                },
+                "&:hover": {
+                    bgcolor: "rgba(59, 130, 246, 0.02)",
+                },
             }}
         >
-
-            <TableCell>
+            {/* Image */}
+            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "left" }}>
                 <Avatar
-                    src={product.images?.[0]?.url}
+                    src={product.images?.[0]}
                     variant="rounded"
                     sx={{ width: 44, height: 44 }}
                 />
             </TableCell>
 
-            <TableCell>
+            {/* Name */}
+            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "left" }}>
                 <Typography sx={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>
-                    {product.title}
+                    {product.name}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
-                    {product._id}
+                <Typography variant="caption" color="var(--text-secondary)">
+                    {product.slug}
                 </Typography>
             </TableCell>
 
-            <TableCell>
-                <Chip label={product.category?.title} size="small" />
+            {/* Category */}
+            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "left" }}>
+                <Chip 
+                    label={product.category || "—"}
+                    size="small"
+                    sx={{
+                        fontWeight: 500,
+                        fontSize: 12,
+                        bgcolor: "rgba(59, 130, 246, 0.12)",
+                        color: "#1e40af",
+                        border: "1px solid rgba(59, 130, 246, 0.3)"
+                    }}
+                />
             </TableCell>
 
-            <TableCell sx={{ fontWeight: 700 }}>
+            {/* Price */}
+            <TableCell sx={{ py: 2.5, px: 2.5, fontWeight: 700, textAlign: "left" }}>
                 <Tooltip
                     arrow
                     placement="bottom"
@@ -43,40 +61,31 @@ const ProductRow = ({ product, onEdit, onDelete, onTogglePublish, onToggleFeatur
                         <Stack spacing={0.5} sx={{ p: 0.5 }}>
                             <Stack direction="row" justifyContent="space-between" spacing={3}>
                                 <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.7)" }}>Original Price</Typography>
-                                <Typography variant="caption" sx={{ fontWeight: 700 }}>PKR {product.sellingPrice}</Typography>
+                                <Typography variant="caption" sx={{ fontWeight: 700 }}>PKR {product.originalPrice}</Typography>
                             </Stack>
-                            {product.discount > 0 && (
+                            {product.salePrice > 0 && (
                                 <Stack direction="row" justifyContent="space-between" spacing={3}>
-                                    <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.7)" }}>Discount</Typography>
-                                    <Typography variant="caption" sx={{ fontWeight: 700, color: "#4ade80" }}>{product.discount}% OFF</Typography>
+                                    <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.7)" }}>Sale Price</Typography>
+                                    <Typography variant="caption" sx={{ fontWeight: 700, color: "#4ade80" }}>PKR {product.salePrice}</Typography>
                                 </Stack>
                             )}
-                            <Stack direction="row" justifyContent="space-between" spacing={3}>
-                                <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.7)" }}>Buying Price</Typography>
-                                <Typography variant="caption" sx={{ fontWeight: 700 }}>PKR {product.buyingPrice}</Typography>
-                            </Stack>
                         </Stack>
                     }
                 >
-                    <span style={{ cursor: "default", borderBottom: "1.5px dashed var(--border-color)" }}>
-                        {product.discount > 0 ? (
-                            <Stack direction="row" spacing={1} alignItems="center" component="span">
-                                <span>PKR {product.price}</span>
-                            </Stack>
-                        ) : (
-                            `PKR ${product.price}`
-                        )}
+                    <span style={{ cursor: "pointer", borderBottom: "1.5px dashed var(--border-color)" }}>
+                        PKR {product.salePrice > 0 ? product.salePrice : product.originalPrice}
                     </span>
                 </Tooltip>
             </TableCell>
 
-            <TableCell>
+            {/* Stock Status */}
+            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "center" }}>
                 <Chip
-                    label={stockStyle.label}
+                    label={stockLabel}
                     size="small"
                     sx={{
-                        bgcolor: stockStyle.bg,
-                        color: stockStyle.text,
+                        bgcolor: stockColor.bg,
+                        color: stockColor.text,
                         fontWeight: 600,
                         fontSize: 12,
                         height: 26,
@@ -85,26 +94,20 @@ const ProductRow = ({ product, onEdit, onDelete, onTogglePublish, onToggleFeatur
                 />
             </TableCell>
 
-            <TableCell>
-                <Switch checked={product.isPublished || false} size="small" onChange={() => onTogglePublish(product)} />
-            </TableCell>
-
-            <TableCell>
-                <Switch checked={product.isFeatured || false} size="small" onChange={() => onToggleFeatured(product)} />
-            </TableCell>
-
-            <TableCell>
+            {/* Actions */}
+            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "center", display: "flex", justifyContent: "center" }}>
                 <Stack direction="row" spacing={0.5}>
                     <Tooltip title="Edit" arrow>
                         <IconButton
                             size="small"
                             onClick={() => onEdit(product)}
                             sx={{
-                                color: "var(--color-primary)",
-                                bgcolor: "color-mix(in srgb, var(--color-primary) 8%, transparent)",
+                                color: "var(--text-secondary)",
                                 "&:hover": {
-                                    bgcolor: "color-mix(in srgb, var(--color-primary) 15%, transparent)",
+                                    color: "#f59e0b",
+                                    bgcolor: "rgba(245, 158, 11, 0.1)"
                                 },
+                                transition: "all 0.2s ease"
                             }}
                         >
                             <MdEdit size={18} />
@@ -115,11 +118,12 @@ const ProductRow = ({ product, onEdit, onDelete, onTogglePublish, onToggleFeatur
                             size="small"
                             onClick={() => onDelete(product)}
                             sx={{
-                                color: "var(--color-error)",
-                                bgcolor: "color-mix(in srgb, var(--color-error) 8%, transparent)",
+                                color: "var(--text-secondary)",
                                 "&:hover": {
-                                    bgcolor: "color-mix(in srgb, var(--color-error) 15%, transparent)",
+                                    color: "#ef4444",
+                                    bgcolor: "rgba(239, 68, 68, 0.1)"
                                 },
+                                transition: "all 0.2s ease"
                             }}
                         >
                             <MdDeleteOutline size={18} />

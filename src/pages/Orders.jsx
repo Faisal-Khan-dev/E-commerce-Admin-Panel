@@ -10,11 +10,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  MenuItem,
+  Select,
+  FormControl,
 } from "@mui/material";
 import { SyncLoader } from "react-spinners";
 import toast from "react-hot-toast";
 
-import { useOrders, useUpdateOrderStatus, useSearchOrder } from "../hooks/useOrder";
+import { useOrders, useUpdateOrderStatus } from "../hooks/useOrder";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSocket } from "../contexts/SocketContext";
 import { ROWS_PER_PAGE } from "../constants";
@@ -28,12 +31,32 @@ import ConfirmDialog from "../components/common/ConfirmDialog";
 
 const TABLE_HEADERS = ["Order ID", "Date", "Customer", "Total", "Status", "Action"];
 
+const selectStyles = {
+  height: 48,
+  borderRadius: 2.5,
+  bgcolor: "var(--bg-surface)",
+  color: "var(--text-secondary)",
+  fontSize: 14,
+  border: "1px solid var(--border-color)",
+  "& .MuiOutlinedInput-notchedOutline": { border: "none" },
+  transition: "all 0.2s ease",
+  "&:hover": {
+    borderColor: "color-mix(in srgb, var(--color-primary) 40%, var(--border-color))",
+  },
+  "&.Mui-focused": {
+    borderColor: "var(--color-primary)",
+    boxShadow: "0 0 0 3px color-mix(in srgb, var(--color-primary) 12%, transparent)",
+  },
+};
+
 const Orders = () => {
   const socket = useSocket();
   const queryClient = useQueryClient();
 
   const [page, setPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [priceSort, setPriceSort] = useState("newest");
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -41,15 +64,12 @@ const Orders = () => {
 
   const debouncedSearch = useDebounce(searchTerm, 500);
 
-  const { data, isLoading: isListLoading } = useOrders(page, ROWS_PER_PAGE, { enabled: !debouncedSearch });
-  const { data: searchData, isLoading: isSearching } = useSearchOrder(debouncedSearch, page, ROWS_PER_PAGE);
+  const { data = {}, isLoading } = useOrders(page, ROWS_PER_PAGE, debouncedSearch, statusFilter, priceSort);
 
-  const activeData = debouncedSearch ? searchData : data;
-  const orders = activeData?.orders || [];
-  const pendingOrders = data?.pendingOrders || 0;
-  const totalPages = activeData?.totalPages || 1;
-  const totalOrders = activeData?.total || 0;
-  const isLoading = debouncedSearch ? isSearching : isListLoading;
+  const orders = data?.orders || [];
+  const pagination = data?.pagination || {};
+  const totalPages = pagination.pages || 1;
+  const totalOrders = pagination.total || 0;
 
   const { mutate: updateStatus, isPending: isUpdating } = useUpdateOrderStatus();
 
@@ -73,7 +93,33 @@ const Orders = () => {
     setPage(1);
   }, []);
 
+  const handleStatusFilterChange = useCallback((e) => {
+    setStatusFilter(e.target.value);
+    setPage(1);
+  }, []);
+
+  const handlePriceSortChange = useCallback((e) => {
+    setPriceSort(e.target.value);
+    setPage(1);
+  }, []);
+
   const handlePageChange = useCallback((_, v) => setPage(v), []);
+
+  const performStatusUpdate = useCallback((id, status) => {
+    updateStatus(
+      { id, status },
+      {
+        onSuccess: () => {
+          toast.success("Order status updated");
+          if (selectedOrder && selectedOrder._id === id) {
+            setSelectedOrder(prev => ({ ...prev, shipping: { ...prev.shipping, status } }));
+          }
+        },
+        onError: (err) =>
+          toast.error(err?.response?.data?.message || "Failed to update status"),
+      }
+    );
+  }, [updateStatus, selectedOrder]);
 
   const handleStatusChange = useCallback(
     (id, status) => {
@@ -84,24 +130,8 @@ const Orders = () => {
         performStatusUpdate(id, status);
       }
     },
-    []
+    [performStatusUpdate]
   );
-
-  const performStatusUpdate = useCallback((id, status) => {
-    updateStatus(
-      { id, status },
-      {
-        onSuccess: () => {
-          toast.success("Order status updated");
-          if (selectedOrder && selectedOrder._id === id) {
-            setSelectedOrder(prev => ({ ...prev, status }));
-          }
-        },
-        onError: (err) =>
-          toast.error(err?.response?.data?.message || "Failed to update status"),
-      }
-    );
-  }, [updateStatus, selectedOrder]);
 
   const handleConfirmCancel = useCallback(() => {
     if (pendingUpdate) {
@@ -128,14 +158,51 @@ const Orders = () => {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <OrderHeader count={totalOrders} pendingCount={pendingOrders} />
+      <OrderHeader count={totalOrders} pendingCount={0} />
 
-      <SearchInput
-        placeholder="Search by order ID or customer email..."
-        value={searchTerm}
-        onChange={handleSearchChange}
-        sx={{ mb: 3, maxWidth: 420 }}
-      />
+      <Stack 
+        direction="row" 
+        alignItems="center" 
+        spacing={2} 
+        sx={{ mb: 3, flexWrap: "wrap", gap: 2 }}
+      >
+        <SearchInput
+          placeholder="Search by order no, customer name, email or amount..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          sx={{ flex: 1, minWidth: 280 }}
+        />
+
+        <FormControl sx={{ minWidth: 180 }}>
+          <Select
+            value={statusFilter}
+            onChange={handleStatusFilterChange}
+            placeholder="Filter by Status"
+            displayEmpty
+            sx={selectStyles}
+          >
+            <MenuItem value="">All Status</MenuItem>
+            <MenuItem value="processing">Processing</MenuItem>
+            <MenuItem value="shipped">Shipped</MenuItem>
+            <MenuItem value="delivered">Delivered</MenuItem>
+            <MenuItem value="cancelled">Cancelled</MenuItem>
+          </Select>
+        </FormControl>
+
+        <FormControl sx={{ minWidth: 180 }}>
+          <Select
+            value={priceSort}
+            onChange={handlePriceSortChange}
+            displayEmpty
+            sx={selectStyles}
+          >
+            <MenuItem value="newest">Newest First</MenuItem>
+            <MenuItem value="oldest">Oldest First</MenuItem>
+            <MenuItem value="low-to-high">Price: Low to High</MenuItem>
+            <MenuItem value="high-to-low">Price: High to Low</MenuItem>
+          </Select>
+        </FormControl>
+      </Stack>
 
       <TableContainer
         component={Paper}
