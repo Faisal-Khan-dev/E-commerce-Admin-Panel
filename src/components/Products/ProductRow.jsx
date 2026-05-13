@@ -1,7 +1,7 @@
 import { TableRow, TableCell, Avatar, Typography, Stack, Chip, Tooltip, IconButton } from "@mui/material";
-import { MdEdit, MdDeleteOutline } from "react-icons/md";
+import { MdEdit, MdDeleteOutline, MdRateReview } from "react-icons/md";
 
-const ProductRow = ({ product, onEdit, onDelete }) => {
+const ProductRow = ({ product, onEdit, onDelete, onViewReviews }) => {
     const stockLabel = product.stock ? "In Stock" : "Out of Stock";
     const stockColor = product.stock ? { bg: "#d1fae5", text: "#15803d" } : { bg: "#fee2e2", text: "#991b1b" };
 
@@ -97,6 +97,22 @@ const ProductRow = ({ product, onEdit, onDelete }) => {
             {/* Actions */}
             <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "center", display: "flex", justifyContent: "center" }}>
                 <Stack direction="row" spacing={0.5}>
+                    <Tooltip title="View Reviews" arrow>
+                        <IconButton
+                            size="small"
+                            onClick={() => onViewReviews(product)}
+                            sx={{
+                                color: "var(--text-secondary)",
+                                "&:hover": {
+                                    color: "#8b5cf6",
+                                    bgcolor: "rgba(139, 92, 246, 0.1)"
+                                },
+                                transition: "all 0.2s ease"
+                            }}
+                        >
+                            <MdRateReview size={18} />
+                        </IconButton>
+                    </Tooltip>
                     <Tooltip title="Edit" arrow>
                         <IconButton
                             size="small"

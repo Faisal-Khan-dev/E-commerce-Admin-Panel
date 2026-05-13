@@ -2,6 +2,7 @@ import { Button, CircularProgress } from "@mui/material";
 
 function CustomButton({
   children,
+  label,
   onClick,
   variant = "contained",
   bgColor = "var(--color-primary)",
@@ -53,7 +54,7 @@ function CustomButton({
         ...sx,
       }}
     >
-      {loading ? <CircularProgress size={22} color="inherit" /> : children}
+      {loading ? <CircularProgress size={22} color="inherit" /> : (label || children)}
     </Button>
   );
 }

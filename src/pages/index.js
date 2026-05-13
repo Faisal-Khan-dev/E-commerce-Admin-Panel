@@ -9,6 +9,7 @@ import Products from "./Products";
 import Categories from "./Categories";
 import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
+import ProductReviews from "./ProductReviews";
 import WebSettings from "./WebSettings";
 
 export {
@@ -23,5 +24,6 @@ export {
     Categories,
     AddProduct,
     EditProduct,
+    ProductReviews,
     WebSettings
 };

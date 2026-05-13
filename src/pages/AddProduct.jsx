@@ -13,8 +13,8 @@ import toast from "react-hot-toast";
 
 const AddProduct = () => {
   const navigate = useNavigate();
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
   const { mutate: createMutation, isPending } = useCreateProduct();
   const { control, handleSubmit, formState: { errors }, setError, watch } = useForm({
     defaultValues: {
@@ -32,43 +32,56 @@ const AddProduct = () => {
 
   // Auto-generate slug from name  
   const generatedSlug = useMemo(() => {
-    if (nameValue) {
-      return nameValue
-        .toLowerCase()
-        .trim()
-        .replace(/[^\w\s-]/g, "")
-        .replace(/\s+/g, "-")
-        .replace(/-+/g, "-");
-    }
-    return "";
+    if (!nameValue) return "";
+    return nameValue
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-");
   }, [nameValue]);
 
   const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
-      return;
-    }
+    const newImages = [...images];
+    const newPreviews = [...imagePreviews];
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please select a valid image file");
-      return;
-    }
+    files.forEach((file) => {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`${file.name} is larger than 5MB`);
+        return;
+      }
 
-    setImage(file);
-    setImagePreview(URL.createObjectURL(file));
+      if (!file.type.startsWith("image/")) {
+        toast.error(`${file.name} is not a valid image file`);
+        return;
+      }
+
+      newImages.push(file);
+      newPreviews.push(URL.createObjectURL(file));
+    });
+
+    setImages(newImages);
+    setImagePreviews(newPreviews);
   };
 
-  const removeImage = () => {
-    setImage(null);
-    setImagePreview(null);
+  const removeImage = (index) => {
+    const newImages = images.filter((_, i) => i !== index);
+    const newPreviews = imagePreviews.filter((_, i) => i !== index);
+    setImages(newImages);
+    setImagePreviews(newPreviews);
   };
 
   const onSubmit = (data) => {
-    if (!image) {
-      return toast.error("Please upload a product image");
+    if (images.length === 0) {
+      return toast.error("Please upload at least one product image");
+    }
+
+    // Validate sale price is not greater than original price
+    if (Number(data.salePrice) > Number(data.originalPrice)) {
+      return toast.error("Sale price cannot be greater than original price");
     }
 
     const formData = new FormData();
@@ -78,8 +91,13 @@ const AddProduct = () => {
     formData.append("originalPrice", Number(data.originalPrice));
     formData.append("salePrice", Number(data.salePrice || 0));
     formData.append("category", data.category || "");
-    formData.append("stock", data.stock === true || data.stock === "true");
-    formData.append("image", image);
+    // Send stock as string since FormData converts everything to string
+    formData.append("stock", String(data.stock));
+    
+    // Append multiple images
+    images.forEach((image) => {
+      formData.append("images", image);
+    });
 
     createMutation(formData, {
       onSuccess: (res) => {
@@ -341,7 +359,7 @@ const AddProduct = () => {
                 Product Image
               </Typography>
 
-              {!imagePreview ? (
+              {imagePreviews.length === 0 ? (
                 <Box
                   component="label"
                   sx={{
@@ -367,6 +385,7 @@ const AddProduct = () => {
                     hidden
                     onChange={handleImageChange}
                     accept="image/*"
+                    multiple
                   />
                   <Box
                     sx={{
@@ -383,33 +402,81 @@ const AddProduct = () => {
                     <MdAddPhotoAlternate size={28} color="var(--color-primary)" />
                   </Box>
                   <Typography variant="body2" sx={{ fontWeight: 600, color: "var(--text-primary)" }}>
-                    Click to upload image
+                    Click to upload images
                   </Typography>
                   <Typography variant="caption" sx={{ color: "var(--text-secondary)", mt: 0.5 }}>
-                    PNG, JPG up to 5MB
+                    PNG, JPG up to 5MB (multiple files allowed)
                   </Typography>
                 </Box>
               ) : (
-                <Box sx={{ position: "relative", display: "inline-block" }}>
-                  <Avatar
-                    src={imagePreview}
-                    variant="rounded"
-                    sx={{ width: 150, height: 150 }}
-                  />
-                  <IconButton
-                    size="small"
-                    onClick={removeImage}
+                <Box>
+                  <Box
                     sx={{
-                      position: "absolute",
-                      top: -10,
-                      right: -10,
-                      bgcolor: "#ef4444",
-                      color: "white",
-                      "&:hover": { bgcolor: "#dc2626" },
+                      display: "grid",
+                      gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                      gap: 2,
+                      mb: 2,
                     }}
                   >
-                    <MdClose size={18} />
-                  </IconButton>
+                    {imagePreviews.map((preview, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          position: "relative",
+                          display: "inline-block",
+                          borderRadius: 2,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <Avatar
+                          src={preview}
+                          variant="rounded"
+                          sx={{ width: 120, height: 120 }}
+                        />
+                        <IconButton
+                          size="small"
+                          onClick={() => removeImage(index)}
+                          sx={{
+                            position: "absolute",
+                            top: -10,
+                            right: -10,
+                            bgcolor: "#ef4444",
+                            color: "white",
+                            "&:hover": { bgcolor: "#dc2626" },
+                          }}
+                        >
+                          <MdClose size={16} />
+                        </IconButton>
+                      </Box>
+                    ))}
+                  </Box>
+                  <Box
+                    component="label"
+                    sx={{
+                      display: "inline-block",
+                      border: "2px dashed var(--border-color)",
+                      borderRadius: 2,
+                      p: 1.5,
+                      cursor: "pointer",
+                      bgcolor: "var(--bg-page)",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        borderColor: "var(--color-primary)",
+                        bgcolor: "color-mix(in srgb, var(--color-primary) 4%, var(--bg-page))",
+                      },
+                    }}
+                  >
+                    <input
+                      type="file"
+                      hidden
+                      onChange={handleImageChange}
+                      accept="image/*"
+                      multiple
+                    />
+                    <Typography variant="body2" sx={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                      + Add More Images
+                    </Typography>
+                  </Box>
                 </Box>
               )}
             </Paper>

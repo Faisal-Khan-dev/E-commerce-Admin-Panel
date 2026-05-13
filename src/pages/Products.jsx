@@ -66,6 +66,10 @@ const Products = () => {
 
   const handlePageChange = useCallback((_, v) => setPage(v), []);
 
+  const handleViewReviews = (product) => {
+    navigate(`/product-reviews/${product.slug}`);
+  };
+
   const handleEdit = (product) => {
     navigate(`/edit-product/${product.slug}`);
   };
@@ -187,6 +191,7 @@ const Products = () => {
                   product={product}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onViewReviews={handleViewReviews}
                 />
               ))
             )}

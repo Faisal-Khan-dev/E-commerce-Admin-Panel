@@ -23,12 +23,15 @@ import { SyncLoader } from "react-spinners";
 import dayjs from "../lib/dayjs";
 import api from "../lib/axios";
 import toast from "react-hot-toast";
+import ReviewsModal from "../components/Orders/ReviewsModal";
 
 const OrderDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [reviewsModalOpen, setReviewsModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const fetchOrderDetails = useCallback(async () => {
     try {
@@ -46,6 +49,16 @@ const OrderDetails = () => {
   useEffect(() => {
     fetchOrderDetails();
   }, [fetchOrderDetails]);
+
+  const handleOpenReviews = (product) => {
+    setSelectedProduct(product);
+    setReviewsModalOpen(true);
+  };
+
+  const handleCloseReviews = () => {
+    setReviewsModalOpen(false);
+    setSelectedProduct(null);
+  };
 
   if (loading) {
     return (
@@ -273,6 +286,9 @@ const OrderDetails = () => {
                   <TableCell align="right" sx={{ fontWeight: 700, fontSize: 13, py: 1.5, color: "var(--text-primary)" }}>
                     Total
                   </TableCell>
+                  <TableCell align="center" sx={{ fontWeight: 700, fontSize: 13, py: 1.5, color: "var(--text-primary)" }}>
+                    Actions
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -305,6 +321,26 @@ const OrderDetails = () => {
                   <TableCell align="right" sx={{ fontSize: 13, fontWeight: 700, py: 2, color: "var(--color-primary)" }}>
                     {(item.price * item.quantity)?.toLocaleString()} PKR
                   </TableCell>
+                  <TableCell align="center" sx={{ fontSize: 13, py: 2 }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => handleOpenReviews(item)}
+                      sx={{
+                        textTransform: "none",
+                        fontSize: 12,
+                        fontWeight: 600,
+                        borderColor: "var(--color-primary)",
+                        color: "var(--color-primary)",
+                        "&:hover": {
+                          borderColor: "var(--color-primary)",
+                          bgcolor: "color-mix(in srgb, var(--color-primary) 8%, transparent)",
+                        },
+                      }}
+                    >
+                      Reviews
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -312,6 +348,16 @@ const OrderDetails = () => {
         </TableContainer>
       </Paper>
       </Box>
+
+      {/* Reviews Modal */}
+      {selectedProduct && (
+        <ReviewsModal
+          open={reviewsModalOpen}
+          onClose={handleCloseReviews}
+          productName={selectedProduct.name}
+          reviews={selectedProduct.customerReviews || []}
+        />
+      )}
     </Box>
   );
 };
