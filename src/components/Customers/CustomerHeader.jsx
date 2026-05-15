@@ -1,6 +1,7 @@
-import { Box, Typography, Stack } from "@mui/material";
+import { Box, Typography, Stack, Button } from "@mui/material";
+import { MdAdd } from "react-icons/md";
 
-const CustomerHeader = ({ count }) => {
+const CustomerHeader = ({ count, onAddClick }) => {
     return (
         <Stack
             direction="row"
@@ -27,6 +28,20 @@ const CustomerHeader = ({ count }) => {
                     {count} customer{count > 1 ? "s" : ""} found
                 </Typography>
             </Box>
+
+            <Button
+                variant="contained"
+                startIcon={<MdAdd size={20} />}
+                onClick={onAddClick}
+                sx={{
+                    height: 48,
+                    borderRadius: 2.5,
+                    fontWeight: 600,
+                    textTransform: "none",
+                }}
+            >
+                Add Customer
+            </Button>
         </Stack>
     );
 };

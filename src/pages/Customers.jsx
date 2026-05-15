@@ -8,7 +8,6 @@ import CustomerRow from "../components/Customers/CustomerRow";
 import SearchInput from "../components/common/SearchInput";
 import EmptyState from "../components/common/EmptyState";
 import useDebounce from "../hooks/useDebounce";
-import { MdAdd } from "react-icons/md";
 import { ROWS_PER_PAGE } from "../constants";
 
 const selectStyles = {
@@ -65,7 +64,7 @@ const Customers = () => {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <CustomerHeader count={totalCustomers} />
+      <CustomerHeader count={totalCustomers} onAddClick={() => navigate("/add-customer")} />
 
       <Stack 
         direction="row" 
@@ -107,14 +106,6 @@ const Customers = () => {
           </Select>
         </FormControl>
 
-        <Button
-          variant="contained"
-          startIcon={<MdAdd size={20} />}
-          onClick={() => navigate("/add-customer")}
-          sx={{ textTransform: "none", borderRadius: 2, height: 48, fontWeight: 600, whiteSpace: "nowrap" }}
-        >
-          Add Customer
-        </Button>
       </Stack>
 
       <TableContainer

@@ -9,6 +9,7 @@ const loginAdmin = async (data) => {
 }
 
 const logoutAdmin = async () => {
+    await api.post("/auth/logout");
     localStorage.removeItem("token");
     delete api.defaults.headers.common["Authorization"];
     return { success: true };

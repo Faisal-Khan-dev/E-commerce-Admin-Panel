@@ -1,4 +1,4 @@
-import { Box, Typography, Stack } from "@mui/material";
+import { Box, Typography, Stack, Button } from "@mui/material";
 import { MdAdd } from "react-icons/md";
 
 const ProductHeader = ({ count, onAddClick }) => {
@@ -28,31 +28,19 @@ const ProductHeader = ({ count, onAddClick }) => {
                     {count} product{count !== 1 ? "s" : ""} found
                 </Typography>
             </Box>
-            <Box
-                component="button"
+            <Button
+                variant="contained"
+                startIcon={<MdAdd size={20} />}
                 onClick={onAddClick}
                 sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    px: 2.5,
                     height: 48,
-                    bgcolor: "var(--color-primary)",
-                    color: "#fff",
-                    border: "none",
                     borderRadius: 2.5,
-                    fontSize: 14,
                     fontWeight: 600,
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    "&:hover": {
-                        bgcolor: "color-mix(in srgb, var(--color-primary) 85%, #000)",
-                    },
+                    textTransform: "none",
                 }}
             >
-                <MdAdd size={20} />
                 Add Product
-            </Box>
+            </Button>
         </Stack>
     );
 };

@@ -330,7 +330,7 @@ const Profile = () => {
             </Grid>
             <Grid item xs={12}>
               <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-                <CustomButton onClick={handleSaveChanges} label="Save Changes" sx={{}} />
+                <CustomButton onClick={handleSaveChanges} label="Save Changes" sx={{height: "55px"}} />
                 <CustomButton
                   onClick={() => setIsEditing(false)}
                   label="Cancel"
@@ -339,6 +339,8 @@ const Profile = () => {
                     color: "var(--text-primary)",
                     border: "1px solid var(--border-color)",
                     "&:hover": { bgcolor: "var(--bg-surface)" },
+                    height: "55px",
+                    width: "140px"
                   }}
                 />
               </Stack>
