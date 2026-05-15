@@ -39,23 +39,19 @@ const EditCustomer = () => {
         }
     }, [customerData, reset]);
 
-    const onSubmit = async (data) => {
-        try {
-            updateCustomer(
-                { id, data },
-                {
-                    onSuccess: () => {
-                        toast.success("User updated successfully");
-                        navigate("/customers");
-                    },
-                    onError: (error) => {
-                        toast.error(error.response?.data?.message || "Failed to update user");
-                    }
+    const onSubmit = (data) => {
+        updateCustomer(
+            { id, data },
+            {
+                onSuccess: () => {
+                    toast.success("User updated successfully");
+                    navigate("/customers");
+                },
+                onError: (error) => {
+                    toast.error(error.response?.data?.message || "Failed to update user");
                 }
-            );
-        } catch (error) {
-            toast.error("An error occurred");
-        }
+            }
+        );
     };
 
     if (isFetching) {

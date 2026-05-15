@@ -1,20 +1,22 @@
 import { TableRow, TableCell, Avatar, Typography, Stack, Chip, Tooltip, IconButton } from "@mui/material";
-import { MdEdit, MdDeleteOutline, MdRateReview } from "react-icons/md";
+import { MdEdit, MdDeleteOutline, MdVisibility } from "react-icons/md";
 
-const ProductRow = ({ product, onEdit, onDelete, onViewReviews }) => {
+const ProductRow = ({ product, onEdit, onDelete, onViewReviews, onViewDetails }) => {
     const stockLabel = product.stock ? "In Stock" : "Out of Stock";
     const stockColor = product.stock ? { bg: "#d1fae5", text: "#15803d" } : { bg: "#fee2e2", text: "#991b1b" };
 
     return (
         <TableRow
+            onClick={() => onViewReviews(product)}
             sx={{
+                cursor: "pointer",
                 borderBottom: "1px solid var(--border-color)",
                 transition: "background 0.2s ease",
                 "&:last-child": {
                     borderBottom: "none"
                 },
                 "&:hover": {
-                    bgcolor: "rgba(59, 130, 246, 0.02)",
+                    bgcolor: "rgba(59, 130, 246, 0.04)",
                 },
             }}
         >
@@ -95,22 +97,22 @@ const ProductRow = ({ product, onEdit, onDelete, onViewReviews }) => {
             </TableCell>
 
             {/* Actions */}
-            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "center", display: "flex", justifyContent: "center" }}>
+            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "center", display: "flex", justifyContent: "center" }} onClick={(e) => e.stopPropagation()}>
                 <Stack direction="row" spacing={0.5}>
-                    <Tooltip title="View Reviews" arrow>
+                    <Tooltip title="View Details" arrow>
                         <IconButton
                             size="small"
-                            onClick={() => onViewReviews(product)}
+                            onClick={() => onViewDetails(product)}
                             sx={{
                                 color: "var(--text-secondary)",
                                 "&:hover": {
-                                    color: "#8b5cf6",
-                                    bgcolor: "rgba(139, 92, 246, 0.1)"
+                                    color: "#06b6d4",
+                                    bgcolor: "rgba(6, 182, 212, 0.1)"
                                 },
                                 transition: "all 0.2s ease"
                             }}
                         >
-                            <MdRateReview size={18} />
+                            <MdVisibility size={18} />
                         </IconButton>
                     </Tooltip>
                     <Tooltip title="Edit" arrow>

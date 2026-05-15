@@ -15,9 +15,9 @@ import { SyncLoader } from "react-spinners";
 const EditProduct = () => {
     const { id } = useParams(); // This should be slug
     const navigate = useNavigate();
-    const [image, setImage] = useState(null);
-    const [imagePreview, setImagePreview] = useState(null);
-    const [currentImageUrl, setCurrentImageUrl] = useState(null);
+    const [newImages, setNewImages] = useState([]);
+    const [newImagePreviews, setNewImagePreviews] = useState([]);
+    const [currentImages, setCurrentImages] = useState([]);
 
     const { data: product = {}, isLoading, error } = useProduct(id);
     const { mutate: updateMutation, isPending } = useUpdateProduct();
@@ -67,33 +67,48 @@ const EditProduct = () => {
                 category: product.category || "",
                 stock: product.stock !== false,
             });
-            if (product.images && product.images[0]) {
-                setCurrentImageUrl(product.images[0]);
+            if (product.images && product.images.length > 0) {
+                setCurrentImages(product.images);
             }
         }
     }, [product, reset]);
 
     const handleImageChange = (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
 
-        if (file.size > 5 * 1024 * 1024) {
-            toast.error("Image size must be less than 5MB");
-            return;
-        }
+        const newImgs = [...newImages];
+        const newPreviews = [...newImagePreviews];
 
-        if (!file.type.startsWith("image/")) {
-            toast.error("Please select a valid image file");
-            return;
-        }
+        files.forEach((file) => {
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error(`${file.name} is larger than 5MB`);
+                return;
+            }
 
-        setImage(file);
-        setImagePreview(URL.createObjectURL(file));
+            if (!file.type.startsWith("image/")) {
+                toast.error(`${file.name} is not a valid image file`);
+                return;
+            }
+
+            newImgs.push(file);
+            newPreviews.push(URL.createObjectURL(file));
+        });
+
+        setNewImages(newImgs);
+        setNewImagePreviews(newPreviews);
     };
 
-    const removeImage = () => {
-        setImage(null);
-        setImagePreview(null);
+    const removeNewImage = (index) => {
+        const filteredImages = newImages.filter((_, i) => i !== index);
+        const filteredPreviews = newImagePreviews.filter((_, i) => i !== index);
+        setNewImages(filteredImages);
+        setNewImagePreviews(filteredPreviews);
+    };
+
+    const removeCurrentImage = (index) => {
+        const filteredImages = currentImages.filter((_, i) => i !== index);
+        setCurrentImages(filteredImages);
     };
 
     const onSubmit = (data) => {
@@ -106,9 +121,10 @@ const EditProduct = () => {
         formData.append("category", data.category || "");
         formData.append("stock", data.stock === true || data.stock === "true");
 
-        if (image) {
-            formData.append("image", image);
-        }
+        // Append new images
+        newImages.forEach((image) => {
+            formData.append("images", image);
+        });
 
         updateMutation({ id: product._id, formData }, {
             onSuccess: (res) => {
@@ -375,34 +391,140 @@ const EditProduct = () => {
                                 variant="subtitle1"
                                 sx={{ mb: 2.5, fontWeight: 700, color: "var(--text-primary)" }}
                             >
-                                Product Image
+                                Product Images
                             </Typography>
 
-                            {!imagePreview ? (
-                                <>
-                                    {currentImageUrl && (
-                                        <Box sx={{ mb: 2 }}>
-                                            <Typography variant="caption" sx={{ color: "var(--text-secondary)" }}>
-                                                Current Image
-                                            </Typography>
-                                            <Avatar
-                                                src={currentImageUrl}
-                                                variant="rounded"
-                                                sx={{ width: 120, height: 120, mt: 1 }}
-                                            />
-                                        </Box>
-                                    )}
+                            {currentImages.length === 0 && newImagePreviews.length === 0 ? (
+                                <Box
+                                    component="label"
+                                    sx={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        border: "2px dashed var(--border-color)",
+                                        borderRadius: 2.5,
+                                        p: 4,
+                                        minHeight: 200,
+                                        cursor: "pointer",
+                                        bgcolor: "var(--bg-page)",
+                                        transition: "all 0.2s ease",
+                                        "&:hover": {
+                                            borderColor: "var(--color-primary)",
+                                            bgcolor: "color-mix(in srgb, var(--color-primary) 4%, var(--bg-page))",
+                                        },
+                                    }}
+                                >
+                                    <input
+                                        type="file"
+                                        hidden
+                                        onChange={handleImageChange}
+                                        accept="image/*"
+                                        multiple
+                                    />
+                                    <Box
+                                        sx={{
+                                            width: 56,
+                                            height: 56,
+                                            borderRadius: "50%",
+                                            bgcolor: "color-mix(in srgb, var(--color-primary) 10%, transparent)",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            mb: 1.5,
+                                        }}
+                                    >
+                                        <MdAddPhotoAlternate size={28} color="var(--color-primary)" />
+                                    </Box>
+                                    <Typography variant="body2" sx={{ fontWeight: 600, color: "var(--text-primary)" }}>
+                                        Click to upload images
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ color: "var(--text-secondary)", mt: 0.5 }}>
+                                        PNG, JPG up to 5MB (multiple files allowed)
+                                    </Typography>
+                                </Box>
+                            ) : (
+                                <Box>
+                                    <Box
+                                        sx={{
+                                            display: "grid",
+                                            gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))",
+                                            gap: 2,
+                                            mb: 2,
+                                        }}
+                                    >
+                                        {currentImages.map((imageUrl, index) => (
+                                            <Box
+                                                key={`current-${index}`}
+                                                sx={{
+                                                    position: "relative",
+                                                    display: "inline-block",
+                                                    borderRadius: 2,
+                                                    overflow: "hidden",
+                                                }}
+                                            >
+                                                <Avatar
+                                                    src={imageUrl}
+                                                    variant="rounded"
+                                                    sx={{ width: 120, height: 120 }}
+                                                />
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => removeCurrentImage(index)}
+                                                    sx={{
+                                                        position: "absolute",
+                                                        top: 4,
+                                                        right: 4,
+                                                        bgcolor: "#ef4444",
+                                                        color: "white",
+                                                        padding: "4px",
+                                                        "&:hover": { bgcolor: "#dc2626" },
+                                                    }}
+                                                >
+                                                    <MdClose size={16} />
+                                                </IconButton>
+                                            </Box>
+                                        ))}
+                                        {newImagePreviews.map((preview, index) => (
+                                            <Box
+                                                key={`new-${index}`}
+                                                sx={{
+                                                    position: "relative",
+                                                    display: "inline-block",
+                                                    borderRadius: 2,
+                                                    overflow: "hidden",
+                                                }}
+                                            >
+                                                <Avatar
+                                                    src={preview}
+                                                    variant="rounded"
+                                                    sx={{ width: 120, height: 120 }}
+                                                />
+                                                <IconButton
+                                                    size="small"
+                                                    onClick={() => removeNewImage(index)}
+                                                    sx={{
+                                                        position: "absolute",
+                                                        top: 4,
+                                                        right: 4,
+                                                        bgcolor: "#ef4444",
+                                                        color: "white",
+                                                        padding: "4px",
+                                                        "&:hover": { bgcolor: "#dc2626" },
+                                                    }}
+                                                >
+                                                    <MdClose size={16} />
+                                                </IconButton>
+                                            </Box>
+                                        ))}
+                                    </Box>
                                     <Box
                                         component="label"
                                         sx={{
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            alignItems: "center",
-                                            justifyContent: "center",
+                                            display: "inline-block",
                                             border: "2px dashed var(--border-color)",
-                                            borderRadius: 2.5,
-                                            p: 3,
-                                            minHeight: 150,
+                                            borderRadius: 2,
+                                            p: 1.5,
                                             cursor: "pointer",
                                             bgcolor: "var(--bg-page)",
                                             transition: "all 0.2s ease",
@@ -417,50 +539,12 @@ const EditProduct = () => {
                                             hidden
                                             onChange={handleImageChange}
                                             accept="image/*"
+                                            multiple
                                         />
-                                        <Box
-                                            sx={{
-                                                width: 48,
-                                                height: 48,
-                                                borderRadius: "50%",
-                                                bgcolor: "color-mix(in srgb, var(--color-primary) 10%, transparent)",
-                                                display: "flex",
-                                                alignItems: "center",
-                                                justifyContent: "center",
-                                                mb: 1,
-                                            }}
-                                        >
-                                            <MdAddPhotoAlternate size={24} color="var(--color-primary)" />
-                                        </Box>
                                         <Typography variant="body2" sx={{ fontWeight: 600, color: "var(--text-primary)" }}>
-                                            Click to update image
-                                        </Typography>
-                                        <Typography variant="caption" sx={{ color: "var(--text-secondary)", mt: 0.3 }}>
-                                            PNG, JPG up to 5MB
+                                            + Add More Images
                                         </Typography>
                                     </Box>
-                                </>
-                            ) : (
-                                <Box sx={{ position: "relative", display: "inline-block" }}>
-                                    <Avatar
-                                        src={imagePreview}
-                                        variant="rounded"
-                                        sx={{ width: 150, height: 150 }}
-                                    />
-                                    <IconButton
-                                        size="small"
-                                        onClick={removeImage}
-                                        sx={{
-                                            position: "absolute",
-                                            top: -10,
-                                            right: -10,
-                                            bgcolor: "#ef4444",
-                                            color: "white",
-                                            "&:hover": { bgcolor: "#dc2626" },
-                                        }}
-                                    >
-                                        <MdClose size={18} />
-                                    </IconButton>
                                 </Box>
                             )}
                         </Paper>

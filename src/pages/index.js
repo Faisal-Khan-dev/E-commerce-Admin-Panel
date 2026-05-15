@@ -6,11 +6,12 @@ import Login from "./Login";
 import Orders from "./Orders";
 import OrderDetails from "./OrderDetails";
 import Products from "./Products";
-import Categories from "./Categories";
 import AddProduct from "./AddProduct";
 import EditProduct from "./EditProduct";
 import ProductReviews from "./ProductReviews";
+import ViewProductDetails from "./ViewProductDetails";
 import WebSettings from "./WebSettings";
+import Profile from "./Profile";
 
 export {
     Customers,
@@ -21,9 +22,10 @@ export {
     Orders,
     OrderDetails,
     Products,
-    Categories,
     AddProduct,
     EditProduct,
     ProductReviews,
-    WebSettings
+    ViewProductDetails,
+    WebSettings,
+    Profile
 };

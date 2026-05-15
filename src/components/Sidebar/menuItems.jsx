@@ -1,13 +1,13 @@
-import { MdOutlineDashboard } from "react-icons/md";
-import { FaUsers, FaShoppingCart, FaBoxOpen, FaLayerGroup, FaCog } from "react-icons/fa";
+import { MdOutlineDashboard, MdPerson } from "react-icons/md";
+import { FaUsers, FaShoppingCart, FaBoxOpen } from "react-icons/fa";
 
 const menuItems = [
     { label: "Dashboard", icon: <MdOutlineDashboard />, path: "/" },
     { label: "Customers", icon: <FaUsers />, path: "/customers" },
     { label: "Orders", icon: <FaShoppingCart />, path: "/orders" },
     { label: "Products", icon: <FaBoxOpen />, path: "/products" },
-    { label: "Categories", icon: <FaLayerGroup />, path: "/categories" },
-    { label: "Settings", icon: <FaCog />, path: "/settings" },
+    { label: "Profile", icon: <MdPerson />, path: "/profile" },
+    // { label: "Settings", icon: <FaCog />, path: "/settings" },
 ];
 
 export default menuItems;

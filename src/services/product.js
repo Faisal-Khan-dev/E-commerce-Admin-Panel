@@ -16,7 +16,7 @@ const getAllProducts = async (search = "", category = "", minPrice = "", maxPric
 
 const getProductBySlug = async (slug) => {
     const res = await api.get(`/products/${slug}`);
-    return res.data;
+    return res.data.product;
 }
 
 const addProduct = async (formData) => {

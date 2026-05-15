@@ -49,6 +49,14 @@ const Products = () => {
   const products = apiResponse?.products || [];
   const pagination = apiResponse?.pagination || {};
 
+  // Extract unique categories from all products
+  const uniqueCategories = Array.from(
+    new Set(products
+      .map(product => product.category)
+      .filter(cat => cat && cat.trim() !== "")
+    )
+  ).sort();
+
   const handleSearchChange = useCallback((e) => {
     setSearchTerm(e.target.value);
     setPage(1);
@@ -68,6 +76,10 @@ const Products = () => {
 
   const handleViewReviews = (product) => {
     navigate(`/product-reviews/${product.slug}`);
+  };
+
+  const handleViewDetails = (product) => {
+    navigate(`/view-product/${product.slug}`);
   };
 
   const handleEdit = (product) => {
@@ -104,23 +116,42 @@ const Products = () => {
       />
 
       {/* Search & Filters */}
-      <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 3 }}>
+      <Stack 
+        direction="row" 
+        alignItems="center" 
+        spacing={2} 
+        sx={{ mb: 3, flexWrap: "wrap", gap: 2 }}
+      >
         <SearchInput
           placeholder="Search by name..."
           value={searchTerm}
           onChange={handleSearchChange}
-          sx={{ flex: 1.5 }}
+          sx={{ flex: 1, minWidth: 280 }}
         />
 
-        <FormControl sx={{ flex: 1, minWidth: 150 }}>
-          <Select value={category} onChange={handleCategoryChange} displayEmpty size="small" sx={selectStyles}>
+        <FormControl sx={{ minWidth: 180 }}>
+          <Select
+            value={category}
+            onChange={handleCategoryChange}
+            displayEmpty
+            sx={selectStyles}
+          >
             <MenuItem value="">All Categories</MenuItem>
-            {/* Categories derived from backend or hardcoded */}
+            {uniqueCategories.map((cat) => (
+              <MenuItem key={cat} value={cat}>
+                {cat}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 
-        <FormControl sx={{ flex: 1, minWidth: 130 }}>
-          <Select value={sort} onChange={handleSortChange} displayEmpty size="small" sx={selectStyles}>
+        <FormControl sx={{ minWidth: 180 }}>
+          <Select
+            value={sort}
+            onChange={handleSortChange}
+            displayEmpty
+            sx={selectStyles}
+          >
             <MenuItem value="newest">Newest</MenuItem>
             <MenuItem value="oldest">Oldest</MenuItem>
             <MenuItem value="low-to-high">Price: Low to High</MenuItem>
@@ -192,6 +223,7 @@ const Products = () => {
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onViewReviews={handleViewReviews}
+                  onViewDetails={handleViewDetails}
                 />
               ))
             )}

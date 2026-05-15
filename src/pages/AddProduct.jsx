@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { Grid, Typography, Box, Paper, IconButton, Stack, Avatar } from "@mui/material";
 import { MdAddPhotoAlternate, MdClose, MdArrowBack } from "react-icons/md";
@@ -12,6 +12,7 @@ import CustomSelectBox from "../components/common/CustomSelectBox";
 import toast from "react-hot-toast";
 
 const AddProduct = () => {
+  "use no memo";
   const navigate = useNavigate();
   const [images, setImages] = useState([]);
   const [imagePreviews, setImagePreviews] = useState([]);
@@ -31,7 +32,7 @@ const AddProduct = () => {
   const nameValue = watch("name");
 
   // Auto-generate slug from name  
-  const generatedSlug = useMemo(() => {
+  const generatedSlug = (() => {
     if (!nameValue) return "";
     return nameValue
       .toLowerCase()
@@ -39,7 +40,7 @@ const AddProduct = () => {
       .replace(/[^\w\s-]/g, "")
       .replace(/\s+/g, "-")
       .replace(/-+/g, "-");
-  }, [nameValue]);
+  })();
 
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files || []);
@@ -438,10 +439,11 @@ const AddProduct = () => {
                           onClick={() => removeImage(index)}
                           sx={{
                             position: "absolute",
-                            top: -10,
-                            right: -10,
+                            top: 4,
+                            right: 4,
                             bgcolor: "#ef4444",
                             color: "white",
+                            padding: "4px",
                             "&:hover": { bgcolor: "#dc2626" },
                           }}
                         >

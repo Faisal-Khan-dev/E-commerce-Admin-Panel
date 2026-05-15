@@ -49,10 +49,14 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
                         src={`https://api.dicebear.com/7.x/initials/svg?seed=${customerName}&backgroundColor=dbf1fc&textColor=2663eb&fontSize=38`}
                         sx={{ width: 32, height: 32 }}
                     />
-                    <Typography sx={{ fontWeight: 500, fontSize: 12 }}>
-                        {customerName}
-                        <p style={{ margin: 0, fontSize: 10, color: "var(--text-secondary)" }}>{customerEmail}</p>
-                    </Typography>
+                    <Box>
+                        <Typography sx={{ fontWeight: 500, fontSize: 12 }}>
+                            {customerName}
+                        </Typography>
+                        <Typography sx={{ fontSize: 10, color: "var(--text-secondary)", margin: 0 }}>
+                            {customerEmail}
+                        </Typography>
+                    </Box>
                 </Stack>
             </TableCell>
 
