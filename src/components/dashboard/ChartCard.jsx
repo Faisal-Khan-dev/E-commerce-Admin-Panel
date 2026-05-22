@@ -8,10 +8,12 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from "recharts";
 
-function ChartCard({ title, subtitle, data = [] }) {
+function ChartCard({ title, subtitle, data = [], xAxisKey = "month", series = [] }) {
   const hasData = data.length > 0;
+  const chartSeries = series.length > 0 ? series : [{ dataKey: "revenue", name: "Revenue", color: "var(--color-primary)" }];
 
   return (
     <Box
@@ -53,7 +55,7 @@ function ChartCard({ title, subtitle, data = [] }) {
             <LineChart data={data}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
               <XAxis
-                dataKey="month"
+                dataKey={xAxisKey}
                 tick={{ fill: "var(--text-secondary)", fontSize: 11 }}
                 axisLine={false}
                 tickLine={false}
@@ -66,6 +68,7 @@ function ChartCard({ title, subtitle, data = [] }) {
                 width={35}
               />
               <Tooltip
+                formatter={(value, name) => [Number(value).toLocaleString(), name]}
                 contentStyle={{
                   backgroundColor: "var(--bg-surface)",
                   border: "1px solid var(--border-color)",
@@ -74,22 +77,27 @@ function ChartCard({ title, subtitle, data = [] }) {
                   boxShadow: "0 10px 25px rgba(0,0,0,0.05)",
                 }}
               />
-              <Line
-                type="monotone"
-                dataKey="revenue"
-                stroke="var(--color-primary)"
-                strokeWidth={3}
-                dot={{ r: 4, fill: "var(--color-primary)", strokeWidth: 0 }}
-                activeDot={{ r: 6, fill: "var(--color-primary)", stroke: "#fff", strokeWidth: 2 }}
-                isAnimationActive={true}
-                animationDuration={1500}
-              />
+              <Legend wrapperStyle={{ fontSize: 12, color: "var(--text-secondary)" }} />
+              {chartSeries.map((item) => (
+                <Line
+                  key={item.dataKey}
+                  type="monotone"
+                  dataKey={item.dataKey}
+                  name={item.name}
+                  stroke={item.color}
+                  strokeWidth={3}
+                  dot={{ r: 4, fill: item.color, strokeWidth: 0 }}
+                  activeDot={{ r: 6, fill: item.color, stroke: "#fff", strokeWidth: 2 }}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                />
+              ))}
             </LineChart>
           </ResponsiveContainer>
         ) : (
-          <Box sx={{ height: "100%", display: "flex", alignItems: "center", justifyCenter: "center" }}>
+          <Box sx={{ height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Typography variant="body2" sx={{ color: "var(--text-secondary)" }}>
-              No sales data available for this period
+              No dashboard data available
             </Typography>
           </Box>
         )}

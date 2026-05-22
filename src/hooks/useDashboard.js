@@ -1,12 +1,12 @@
-import { getDashboardStats } from "../services/dashboard";
 import { useQuery } from "@tanstack/react-query";
+import { getDashboardStats } from "../services/dashboard";
 
 const useDashboard = () => {
     return useQuery({
         queryKey: ["dashboard"],
         queryFn: getDashboardStats,
-        select: (data) => data.data,
-        refetchOnWindowFocus: false
+        refetchOnWindowFocus: false,
+        staleTime: 1000 * 60 * 2,
     });
 }
 

@@ -24,6 +24,7 @@ import { useSocket } from "../contexts/SocketContext";
 import { ROWS_PER_PAGE } from "../constants";
 import useDebounce from "../hooks/useDebounce";
 import OrderHeader from "../components/Orders/OrderHeader";
+import OrderStatsCards from "../components/Orders/OrderStatsCards";
 import OrderRow from "../components/Orders/OrderRow";
 import SearchInput from "../components/common/SearchInput";
 import EmptyState from "../components/common/EmptyState";
@@ -66,6 +67,7 @@ const Orders = () => {
   const { data = {}, isLoading } = useOrders(page, ROWS_PER_PAGE, debouncedSearch, statusFilter, priceSort);
 
   const orders = data?.orders || [];
+  const cards = data?.cards || {};
   const pagination = data?.pagination || {};
   const totalPages = pagination.pages || 1;
   const totalOrders = pagination.total || 0;
@@ -148,7 +150,9 @@ const Orders = () => {
 
   return (
     <Box sx={{ width: "100%" }}>
-      <OrderHeader count={totalOrders} pendingCount={0} />
+      <OrderHeader count={totalOrders} pendingCount={cards.processing || 0} />
+
+      <OrderStatsCards cards={cards} />
 
       <Stack 
         direction="row" 

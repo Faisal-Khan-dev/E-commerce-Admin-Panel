@@ -1,9 +1,17 @@
 import { Box } from "@mui/material";
-import { MdCurrencyRupee } from "react-icons/md";
-import { FaTruck, FaBoxOpen } from "react-icons/fa";
+import { FaCheckCircle, FaClipboardList, FaMoneyBillWave, FaTruck } from "react-icons/fa";
 import CustomCard from "./DashboardCard";
 
-const StatsGrid = ({ totalSales, deliveredOrders, totalProducts }) => {
+const StatsGrid = ({ metrics = {} }) => {
+    const {
+        totalOrders = 0,
+        totalConfirmedOrders = 0,
+        totalReceivedAmount = 0,
+        totalDeliveredOrders = 0,
+        totalShippedOrders = 0,
+        totalShippedAmount = 0,
+    } = metrics;
+
     return (
         <Box
             sx={{
@@ -11,36 +19,45 @@ const StatsGrid = ({ totalSales, deliveredOrders, totalProducts }) => {
                 gridTemplateColumns: {
                     xs: "1fr",
                     sm: "1fr 1fr",
-                    md: "1fr 1fr 1fr",
+                    lg: "repeat(4, minmax(0, 1fr))",
                 },
                 gap: 3,
             }}
         >
             <CustomCard
-                title="Total Revenue"
-                subtitle="Net sales from delivered orders"
-                value={`Rs. ${totalSales.toLocaleString()}`}
+                title="Total Orders"
+                subtitle="All active orders in the system"
+                value={totalOrders.toLocaleString()}
                 iconBg="color-mix(in srgb, var(--color-primary) 10%, transparent)"
                 iconColor="var(--color-primary)"
-                icon={<MdCurrencyRupee size={22} />}
+                icon={<FaClipboardList size={18} />}
             />
 
             <CustomCard
-                title="Orders Completed"
-                subtitle="Successfully delivered packages"
-                value={deliveredOrders}
-                iconBg="color-mix(in srgb, var(--color-success) 10%, transparent)"
-                iconColor="var(--color-success)"
-                icon={<FaTruck size={20} />}
-            />
-
-            <CustomCard
-                title="Inventory Size"
-                subtitle="Total active products"
-                value={totalProducts}
+                title="Confirmed Orders"
+                subtitle="Orders approved for fulfillment"
+                value={totalConfirmedOrders.toLocaleString()}
                 iconBg="color-mix(in srgb, var(--color-info) 10%, transparent)"
                 iconColor="var(--color-info)"
-                icon={<FaBoxOpen size={20} />}
+                icon={<FaCheckCircle size={18} />}
+            />
+
+            <CustomCard
+                title="Delivered Revenue"
+                subtitle="Total amount received from delivered orders"
+                value={`Rs. ${totalReceivedAmount.toLocaleString()}`}
+                iconBg="color-mix(in srgb, var(--color-success) 10%, transparent)"
+                iconColor="var(--color-success)"
+                icon={<FaMoneyBillWave size={18} />}
+            />
+
+            <CustomCard
+                title="Shipped Orders"
+                subtitle="Orders that have left the warehouse"
+                value={totalShippedOrders.toLocaleString()}
+                iconBg="color-mix(in srgb, #8b5cf6 10%, transparent)"
+                iconColor="#7c3aed"
+                icon={<FaTruck size={18} />}
             />
         </Box>
     );
