@@ -1,5 +1,15 @@
 export const ROWS_PER_PAGE = 10;
 
+export const ORDER_STATUSES = [
+  { value: "processing", label: "Processing" },
+  { value: "confirmed", label: "Confirmed" },
+  { value: "shipped", label: "Shipped" },
+  { value: "out_for_delivery", label: "Out for Delivery" },
+  { value: "delivered", label: "Delivered" },
+  { value: "cancelled", label: "Cancelled" },
+  { value: "returned", label: "Returned" },
+];
+
 export const initialOrders = [
   {
     id: "#ORD-7741",

@@ -21,7 +21,7 @@ import toast from "react-hot-toast";
 import { useOrders, useUpdateOrderStatus } from "../hooks/useOrder";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSocket } from "../contexts/SocketContext";
-import { ROWS_PER_PAGE } from "../constants";
+import { ROWS_PER_PAGE, ORDER_STATUSES } from "../constants";
 import useDebounce from "../hooks/useDebounce";
 import OrderHeader from "../components/Orders/OrderHeader";
 import OrderStatsCards from "../components/Orders/OrderStatsCards";
@@ -176,10 +176,11 @@ const Orders = () => {
             sx={selectStyles}
           >
             <MenuItem value="">All Status</MenuItem>
-            <MenuItem value="processing">Processing</MenuItem>
-            <MenuItem value="shipped">Shipped</MenuItem>
-            <MenuItem value="delivered">Delivered</MenuItem>
-            <MenuItem value="cancelled">Cancelled</MenuItem>
+            {ORDER_STATUSES.map((status) => (
+              <MenuItem key={status.value} value={status.value}>
+                {status.label}
+              </MenuItem>
+            ))}
           </Select>
         </FormControl>
 

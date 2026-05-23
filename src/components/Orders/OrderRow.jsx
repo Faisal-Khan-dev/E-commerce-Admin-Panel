@@ -1,14 +1,14 @@
 import { TableRow, TableCell, Avatar, Typography, Stack, Chip, Select, MenuItem, Box } from "@mui/material";
 import dayjs from "../../lib/dayjs";
 import { getStatusColor } from "../../utils/statusChip";
-
-const STATUS_OPTIONS = ["processing", "shipped", "delivered", "cancelled"];
+import { ORDER_STATUSES } from "../../constants";
 
 const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
-    const shippingStatus = order.shipping?.status || "processing";
-    const statusColor = getStatusColor(shippingStatus);
-    const customerName = `${order.customerInfo?.firstName || ""} ${order.customerInfo?.lastName || ""}`.trim() || "Unknown";
-    const customerEmail = order.customerInfo?.email || "No email";
+    const orderStatus = order.status || "processing";
+    const statusColor = getStatusColor(orderStatus);
+    const customer = order.customerId || order.customerInfo || {};
+    const customerName = `${customer.firstName || ""} ${customer.lastName || ""}`.trim() || "Unknown";
+    const customerEmail = customer.email || "No email";
     const totalItems = order.orderItems?.length || 0;
     const orderNo = order.orderNo || "N/A"; // Use orderNo field
 
@@ -111,7 +111,7 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
                 }}
             >
                 <Chip
-                    label={shippingStatus.charAt(0).toUpperCase() + shippingStatus.slice(1)}
+                    label={orderStatus.charAt(0).toUpperCase() + orderStatus.slice(1).replace(/_/g, ' ')}
                     size="small"
                     sx={{
                         bgcolor: statusColor.bg,
@@ -134,7 +134,7 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
             >
                 <Select
                     size="small"
-                    value={shippingStatus}
+                    value={orderStatus}
                     disabled={isUpdating}
                     onChange={(e) =>
                         onStatusChange(order._id, e.target.value)
@@ -156,9 +156,9 @@ const OrderRow = ({ order, onStatusChange, onViewDetails, isUpdating }) => {
                         },
                     }}
                 >
-                    {STATUS_OPTIONS.map((s) => (
-                        <MenuItem key={s} value={s} sx={{ fontSize: 12, fontWeight: 500 }}>
-                            {s.charAt(0).toUpperCase() + s.slice(1)}
+                    {ORDER_STATUSES.map((status) => (
+                        <MenuItem key={status.value} value={status.value} sx={{ fontSize: 12, fontWeight: 500 }}>
+                            {status.label}
                         </MenuItem>
                     ))}
                 </Select>

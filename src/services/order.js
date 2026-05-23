@@ -11,8 +11,9 @@ const getOrders = async (page, limit, search = '', status = '', sort = 'newest')
 }
 
 const updateOrderStatus = async ({ id, status }) => {
-    const res = await api.put(`/orders/${id}`, { 
-        shipping: { status } 
+    const res = await api.patch(`/orders/${id}/status`, { 
+        status,
+        shippingStatus: status
     });
     return res.data;
 }
