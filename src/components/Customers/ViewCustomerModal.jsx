@@ -1,3 +1,4 @@
+import React from "react";
 import {
     Dialog,
     DialogTitle,
@@ -321,3 +322,4 @@ const ViewCustomerModal = ({ open, onClose, customerId }) => {
 };
 
 export default ViewCustomerModal;
+

@@ -1,3 +1,4 @@
+import React from "react";
 import { Typography, Box } from "@mui/material";
 import { PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { getStatusColor } from "../../utils/statusChip";

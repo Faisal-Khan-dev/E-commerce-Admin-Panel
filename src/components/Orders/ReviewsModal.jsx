@@ -1,3 +1,4 @@
+import React from "react";
 import {
   Dialog,
   DialogTitle,
@@ -181,3 +182,4 @@ const ReviewsModal = ({ open, onClose, productName, reviews = [] }) => {
 };
 
 export default ReviewsModal;
+

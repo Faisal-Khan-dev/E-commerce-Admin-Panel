@@ -1,3 +1,4 @@
+import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useState } from "react";
 import PageLoader from "../components/loaders/PageLoader";

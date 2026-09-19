@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from "react";
 import { Box, Button, Card, Stack, TextField, MenuItem, Typography, Checkbox, FormControlLabel } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -291,3 +292,4 @@ const AddCustomer = () => {
 };
 
 export default AddCustomer;
+

@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from "react";
 import { TableRow, TableCell, Typography, Stack, Chip, Switch, Avatar, IconButton } from "@mui/material";
 import { useUpdateCustomer, useDeleteCustomer } from "../../hooks/useCustomer";

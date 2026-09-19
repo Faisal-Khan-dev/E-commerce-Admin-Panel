@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Customers, AddCustomer, EditCustomer, Dashboard, Login, Orders, OrderDetails, Products, AddProduct, EditProduct, ProductReviews, WebSettings, ViewProductDetails, Profile } from "../pages";
 import AdminLayout from "../layouts/AdminLayout";
 import ProtectedRoute from "./ProtectedRoute";
+import React from "react";
 
 const AppRoutes = () => {
     return (

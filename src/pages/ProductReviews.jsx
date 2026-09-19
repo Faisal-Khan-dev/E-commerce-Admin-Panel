@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useEffect } from "react";
 import {
   Box,
@@ -322,3 +323,4 @@ const ProductReviews = () => {
 };
 
 export default ProductReviews;
+

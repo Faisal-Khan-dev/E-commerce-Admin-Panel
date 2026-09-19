@@ -1,3 +1,4 @@
+import React from "react";
 import { useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Box, Typography, Stack, Avatar, Chip, Paper, IconButton, Grid } from "@mui/material";
@@ -216,3 +217,4 @@ const ViewProductDetails = () => {
 };
 
 export default ViewProductDetails;
+

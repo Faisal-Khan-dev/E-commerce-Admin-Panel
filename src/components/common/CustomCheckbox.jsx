@@ -1,3 +1,4 @@
+import React from "react";
 import { Checkbox, FormControlLabel } from "@mui/material";
 
 export default function CustomCheckbox({
@@ -43,3 +44,4 @@ export default function CustomCheckbox({
     />
   );
 }
+

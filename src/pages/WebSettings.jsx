@@ -1,3 +1,4 @@
+import React from "react";
 import { useState } from "react";
 import { Box, Typography, Tabs, Tab, Paper } from "@mui/material";
 import TopbarSettings from "../components/Settings/TopbarSettings";
@@ -81,3 +82,4 @@ const WebSettings = () => {
 };
 
 export default WebSettings;
+

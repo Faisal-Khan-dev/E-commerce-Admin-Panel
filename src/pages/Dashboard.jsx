@@ -1,3 +1,4 @@
+import React from "react";
 import { Box, Chip, Stack, Typography } from "@mui/material";
 import { SyncLoader } from "react-spinners";
 import { FaChartLine, FaCheckCircle, FaShippingFast, FaWallet } from "react-icons/fa";
