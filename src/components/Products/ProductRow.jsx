@@ -22,7 +22,7 @@ const ProductRow = ({ product, onEdit, onDelete, onViewReviews, onViewDetails })
             }}
         >
             {/* Image */}
-            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "left" }}>
+            <TableCell sx={{ py: 2, px: 2.5, textAlign: "left", verticalAlign: "middle" }}>
                 <Avatar
                     src={product.images?.[0]}
                     variant="rounded"
@@ -31,7 +31,7 @@ const ProductRow = ({ product, onEdit, onDelete, onViewReviews, onViewDetails })
             </TableCell>
 
             {/* Name */}
-            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "left" }}>
+            <TableCell sx={{ py: 2, px: 2.5, textAlign: "left", verticalAlign: "middle" }}>
                 <Typography sx={{ fontWeight: 600, fontSize: 14, color: "var(--text-primary)" }}>
                     {product.name}
                 </Typography>
@@ -41,7 +41,7 @@ const ProductRow = ({ product, onEdit, onDelete, onViewReviews, onViewDetails })
             </TableCell>
 
             {/* Category */}
-            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "left" }}>
+            <TableCell sx={{ py: 2, px: 2.5, textAlign: "left", verticalAlign: "middle" }}>
                 <Chip 
                     label={product.category || "—"}
                     size="small"
@@ -56,7 +56,7 @@ const ProductRow = ({ product, onEdit, onDelete, onViewReviews, onViewDetails })
             </TableCell>
 
             {/* Price */}
-            <TableCell sx={{ py: 2.5, px: 2.5, fontWeight: 700, textAlign: "left" }}>
+            <TableCell sx={{ py: 2, px: 2.5, fontWeight: 700, textAlign: "left", verticalAlign: "middle" }}>
                 <Tooltip
                     arrow
                     placement="bottom"
@@ -82,7 +82,7 @@ const ProductRow = ({ product, onEdit, onDelete, onViewReviews, onViewDetails })
             </TableCell>
 
             {/* Stock Status */}
-            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "center" }}>
+            <TableCell align="center" sx={{ py: 2, px: 2.5, verticalAlign: "middle" }}>
                 <Chip
                     label={stockLabel}
                     size="small"
@@ -98,8 +98,8 @@ const ProductRow = ({ product, onEdit, onDelete, onViewReviews, onViewDetails })
             </TableCell>
 
             {/* Actions */}
-            <TableCell sx={{ py: 2.5, px: 2.5, textAlign: "center", display: "flex", justifyContent: "center" }} onClick={(e) => e.stopPropagation()}>
-                <Stack direction="row" spacing={0.5}>
+            <TableCell align="center" sx={{ py: 2, px: 2.5, verticalAlign: "middle" }} onClick={(e) => e.stopPropagation()}>
+                <Stack direction="row" spacing={0.5} justifyContent="center" alignItems="center">
                     <Tooltip title="View Details" arrow>
                         <IconButton
                             size="small"
