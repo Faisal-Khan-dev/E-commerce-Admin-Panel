@@ -40,10 +40,17 @@ const CARD_META = {
   },
   delivered: {
     title: "Delivered",
-    subtitle: "Successfully completed orders",
+    subtitle: "Successfully delivered to customer",
     icon: <FaBoxOpen size={18} />,
     iconBg: "color-mix(in srgb, #16a34a 12%, transparent)",
     iconColor: "#15803d",
+  },
+  completed: {
+    title: "Completed",
+    subtitle: "Orders fulfilled and completed",
+    icon: <FaCheckCircle size={18} />,
+    iconBg: "color-mix(in srgb, #059669 12%, transparent)",
+    iconColor: "#059669",
   },
   cancelled: {
     title: "Cancelled",

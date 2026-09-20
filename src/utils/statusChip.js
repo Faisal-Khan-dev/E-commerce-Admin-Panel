@@ -1,7 +1,9 @@
 export const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
         case "delivered":
+        case "completed":
             return { bg: "rgba(4, 120, 87, 0.1)", text: "#047857" };
+        case "processing":
         case "pending":
             return { bg: "rgba(217, 119, 6, 0.1)", text: "#d97706" };
         case "confirmed":
@@ -9,6 +11,8 @@ export const getStatusColor = (status) => {
             return { bg: "rgba(2, 132, 199, 0.1)", text: "#0284c7" };
         case "cancelled":
             return { bg: "rgba(220, 38, 38, 0.1)", text: "#dc2626" };
+        case "returned":
+            return { bg: "rgba(100, 116, 139, 0.1)", text: "#475569" };
         default:
             return { bg: "#f1f5f9", text: "#475569" };
     }

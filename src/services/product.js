@@ -10,7 +10,7 @@ const getAllProducts = async (search = "", category = "", minPrice = "", maxPric
     params.append("page", page);
     params.append("limit", limit);
     
-    const res = await api.get(`/products/all?${params.toString()}`);
+    const res = await api.get(`/products?${params.toString()}`);
     return res.data;
 }
 
