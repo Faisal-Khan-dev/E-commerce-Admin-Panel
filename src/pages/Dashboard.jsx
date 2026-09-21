@@ -1,14 +1,15 @@
-import React from "react";
-import { Box, Chip, Stack, Typography } from "@mui/material";
+import React, { useState } from "react";
+import { Box, Chip, Stack, Typography, TextField, Button } from "@mui/material";
 import { SyncLoader } from "react-spinners";
-import { FaChartLine, FaCheckCircle, FaShippingFast, FaWallet } from "react-icons/fa";
+import { FaChartLine, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
 
 import ChartCard from "../components/dashboard/ChartCard";
 import StatsGrid from "../components/dashboard/StatsGrid";
 import useDashboard from "../hooks/useDashboard";
 
 function Dashboard() {
-  const { data, isLoading, error } = useDashboard();
+  const [selectedMonth, setSelectedMonth] = useState("");
+  const { data, isLoading, error } = useDashboard(selectedMonth);
 
   if (isLoading) {
     return (
@@ -45,16 +46,17 @@ function Dashboard() {
   } = data || {};
 
   const totalOrders = metrics.totalOrders || 0;
-  const deliveredOrders = metrics.totalDeliveredOrders || 0;
-  const confirmedOrders = metrics.totalConfirmedOrders || 0;
-  const shippedOrders = metrics.totalShippedOrders || 0;
-  const totalReceivedAmount = metrics.totalReceivedAmount || 0;
-  const totalShippedAmount = metrics.totalShippedAmount || 0;
-  const deliveryRate = totalOrders ? Math.round((deliveredOrders / totalOrders) * 100) : 0;
-  const latestPoint = graphData[graphData.length - 1] || {};
+  const completedOrders = metrics.totalCompletedOrders || metrics.totalDeliveredOrders || 0;
+  const cancelledOrders = metrics.totalCancelledOrders || 0;
+  const returnedOrders = metrics.totalReturnedOrders || 0;
+  const processingAmount = metrics.processingAmount || 0;
+  const totalRevenue = metrics.totalRevenue || metrics.totalReceivedAmount || 0;
+
+  const completionRate = totalOrders ? Math.round((completedOrders / totalOrders) * 100) : 0;
 
   return (
     <Box sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 3 }}>
+      {/* Dashboard Banner Header */}
       <Box
         sx={{
           p: { xs: 2.5, md: 3.5 },
@@ -91,33 +93,53 @@ function Dashboard() {
                 fontFamily: "var(--font-heading)",
               }}
             >
-              Order Performance Overview
+              Order & Revenue Analytics
             </Typography>
             <Typography sx={{ mt: 1, color: "var(--text-secondary)", maxWidth: 760 }}>
-              Live analytics from the order dashboard API. Use this page to monitor order flow,
-              revenue, and fulfillment performance.
+              {selectedMonth
+                ? `Showing performance analytics for selected month: ${selectedMonth}`
+                : "System-wide order flow, processing amounts, and total completed revenue."}
             </Typography>
           </Box>
 
-          <Stack direction="row" spacing={1.25} flexWrap="wrap">
-            <Chip
-              icon={<FaChartLine />}
-              label={`${graphData.length} periods`}
-              sx={{ bgcolor: "var(--bg-surface)", fontWeight: 700 }}
+          {/* Month Calendar Selector & Reset */}
+          <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" gap={1}>
+            <TextField
+              type="month"
+              size="small"
+              label="Select Month Filter"
+              value={selectedMonth}
+              onChange={(e) => setSelectedMonth(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              sx={{
+                bgcolor: "var(--bg-surface)",
+                borderRadius: 2,
+                minWidth: 180,
+                "& .MuiOutlinedInput-notchedOutline": { borderColor: "var(--border-color)" },
+              }}
             />
-            <Chip
-              icon={<FaCheckCircle />}
-              label={`${deliveryRate}% delivered`}
-              sx={{ bgcolor: "var(--bg-surface)", fontWeight: 700 }}
-            />
-            <Chip
-              icon={<FaShippingFast />}
-              label={`${shippedOrders} shipped`}
-              sx={{ bgcolor: "var(--bg-surface)", fontWeight: 700 }}
-            />
+            {selectedMonth && (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<FaTimesCircle />}
+                onClick={() => setSelectedMonth("")}
+                sx={{
+                  borderRadius: 2,
+                  textTransform: "none",
+                  fontWeight: 600,
+                  height: 40,
+                  borderColor: "var(--border-color)",
+                  color: "var(--text-secondary)",
+                }}
+              >
+                All Months
+              </Button>
+            )}
           </Stack>
         </Stack>
 
+        {/* Highlights Bar */}
         <Stack
           direction={{ xs: "column", sm: "row" }}
           spacing={2}
@@ -134,12 +156,13 @@ function Dashboard() {
             }}
           >
             <Typography sx={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
-              Delivered Revenue
+              Completed Revenue
             </Typography>
-            <Typography sx={{ fontSize: 22, fontWeight: 800, mt: 0.5, color: "var(--text-primary)" }}>
-              Rs. {totalReceivedAmount.toLocaleString()}
+            <Typography sx={{ fontSize: 22, fontWeight: 800, mt: 0.5, color: "#059669" }}>
+              Rs. {totalRevenue.toLocaleString()}
             </Typography>
           </Box>
+
           <Box
             sx={{
               px: 2,
@@ -151,12 +174,13 @@ function Dashboard() {
             }}
           >
             <Typography sx={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
-              Shipped Amount
+              Processing Amount
             </Typography>
-            <Typography sx={{ fontSize: 22, fontWeight: 800, mt: 0.5, color: "var(--text-primary)" }}>
-              Rs. {totalShippedAmount.toLocaleString()}
+            <Typography sx={{ fontSize: 22, fontWeight: 800, mt: 0.5, color: "#d97706" }}>
+              Rs. {processingAmount.toLocaleString()}
             </Typography>
           </Box>
+
           <Box
             sx={{
               px: 2,
@@ -168,10 +192,10 @@ function Dashboard() {
             }}
           >
             <Typography sx={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
-              Latest Period
+              Completion Rate
             </Typography>
-            <Typography sx={{ fontSize: 22, fontWeight: 800, mt: 0.5, color: "var(--text-primary)" }}>
-              {latestPoint.label || "N/A"}
+            <Typography sx={{ fontSize: 22, fontWeight: 800, mt: 0.5, color: "var(--color-primary)" }}>
+              {completionRate}%
             </Typography>
           </Box>
         </Stack>
@@ -182,8 +206,10 @@ function Dashboard() {
         )}
       </Box>
 
+      {/* 6 Metric Cards */}
       <StatsGrid metrics={metrics} />
 
+      {/* Chart & Insights */}
       <Box
         sx={{
           display: "grid",
@@ -192,14 +218,15 @@ function Dashboard() {
         }}
       >
         <ChartCard
-          title="Order Momentum"
-          subtitle="Monthly performance"
+          title={selectedMonth ? `Daily Performance (${selectedMonth})` : "12-Month Performance Trend"}
+          subtitle={selectedMonth ? "Daily breakdown for selected month" : "Monthly trend for current year"}
           data={graphData}
           xAxisKey="label"
           series={[
             { dataKey: "totalOrders", name: "Total Orders", color: "var(--color-primary)" },
-            { dataKey: "deliveredOrders", name: "Delivered Orders", color: "var(--color-success)" },
-            { dataKey: "deliveredAmount", name: "Delivered Amount", color: "#f59e0b" },
+            { dataKey: "completedOrders", name: "Completed Orders", color: "#16a34a" },
+            { dataKey: "revenue", name: "Revenue (PKR)", color: "#059669" },
+            { dataKey: "processingAmount", name: "Processing (PKR)", color: "#f59e0b" },
           ]}
         />
 
@@ -215,7 +242,7 @@ function Dashboard() {
           }}
         >
           <Typography sx={{ fontWeight: 700, color: "var(--text-primary)", fontFamily: "var(--font-heading)" }}>
-            Quick Insights
+            Breakdown Insights
           </Typography>
 
           <Box sx={{ display: "grid", gap: 1.5 }}>
@@ -227,16 +254,16 @@ function Dashboard() {
             </Box>
 
             <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "var(--bg-page)", border: "1px solid var(--border-color)" }}>
-              <Typography sx={{ fontSize: 12, color: "var(--text-secondary)" }}>Confirmed Orders</Typography>
-              <Typography sx={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>
-                {confirmedOrders.toLocaleString()}
+              <Typography sx={{ fontSize: 12, color: "var(--text-secondary)" }}>Completed Orders</Typography>
+              <Typography sx={{ fontSize: 22, fontWeight: 800, color: "#16a34a" }}>
+                {completedOrders.toLocaleString()}
               </Typography>
             </Box>
 
             <Box sx={{ p: 1.5, borderRadius: 2, bgcolor: "var(--bg-page)", border: "1px solid var(--border-color)" }}>
-              <Typography sx={{ fontSize: 12, color: "var(--text-secondary)" }}>Delivered Orders</Typography>
-              <Typography sx={{ fontSize: 22, fontWeight: 800, color: "var(--text-primary)" }}>
-                {deliveredOrders.toLocaleString()}
+              <Typography sx={{ fontSize: 12, color: "var(--text-secondary)" }}>Cancelled & Returned</Typography>
+              <Typography sx={{ fontSize: 22, fontWeight: 800, color: "#ef4444" }}>
+                {(cancelledOrders + returnedOrders).toLocaleString()}
               </Typography>
             </Box>
           </Box>

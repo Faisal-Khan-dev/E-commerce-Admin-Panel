@@ -1,67 +1,80 @@
 import React from "react";
 import { Box } from "@mui/material";
-import { FaCheckCircle, FaClipboardList, FaMoneyBillWave, FaTruck } from "react-icons/fa";
+import {
+  FaCheckCircle,
+  FaClipboardList,
+  FaMoneyBillWave,
+  FaTimesCircle,
+  FaUndo,
+  FaHourglassHalf,
+} from "react-icons/fa";
 import CustomCard from "./DashboardCard";
 
 const StatsGrid = ({ metrics = {} }) => {
-    const {
-        totalOrders = 0,
-        totalConfirmedOrders = 0,
-        totalReceivedAmount = 0,
-        totalDeliveredOrders = 0,
-        totalShippedOrders = 0,
-        totalShippedAmount = 0,
-    } = metrics;
+  const {
+    totalOrders = 0,
+    totalProcessingOrders = metrics.totalConfirmedOrders || 0,
+    totalCompletedOrders = metrics.totalDeliveredOrders || 0,
+    totalCancelledOrders = 0,
+  } = metrics;
 
-    return (
-        <Box
-            sx={{
-                display: "grid",
-                gridTemplateColumns: {
-                    xs: "1fr",
-                    sm: "1fr 1fr",
-                    lg: "repeat(4, minmax(0, 1fr))",
-                },
-                gap: 3,
-            }}
-        >
-            <CustomCard
-                title="Total Orders"
-                subtitle="All active orders in the system"
-                value={totalOrders.toLocaleString()}
-                iconBg="color-mix(in srgb, var(--color-primary) 10%, transparent)"
-                iconColor="var(--color-primary)"
-                icon={<FaClipboardList size={18} />}
-            />
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: {
+          xs: "1fr",
+          sm: "repeat(2, 1fr)",
+          lg: "repeat(4, 1fr)",
+        },
+        gap: 2.5,
+      }}
+    >
+      {/* Total Orders */}
+      <CustomCard
+        title="Total Orders"
+        subtitle="All system orders"
+        value={totalOrders.toLocaleString()}
+        iconBg="rgba(59, 130, 246, 0.12)"
+        iconColor="#3b82f6"
+        accentColor="#3b82f6"
+        icon={<FaClipboardList size={18} />}
+      />
 
-            <CustomCard
-                title="Confirmed Orders"
-                subtitle="Orders approved for fulfillment"
-                value={totalConfirmedOrders.toLocaleString()}
-                iconBg="color-mix(in srgb, var(--color-info) 10%, transparent)"
-                iconColor="var(--color-info)"
-                icon={<FaCheckCircle size={18} />}
-            />
+      {/* Processing Orders */}
+      <CustomCard
+        title="Processing Orders"
+        subtitle="In-progress orders"
+        value={totalProcessingOrders.toLocaleString()}
+        iconBg="rgba(217, 119, 6, 0.12)"
+        iconColor="#d97706"
+        accentColor="#d97706"
+        icon={<FaHourglassHalf size={18} />}
+      />
 
-            <CustomCard
-                title="Delivered Revenue"
-                subtitle="Total amount received from delivered orders"
-                value={`Rs. ${totalReceivedAmount.toLocaleString()}`}
-                iconBg="color-mix(in srgb, var(--color-success) 10%, transparent)"
-                iconColor="var(--color-success)"
-                icon={<FaMoneyBillWave size={18} />}
-            />
+      {/* Completed Orders */}
+      <CustomCard
+        title="Completed Orders"
+        subtitle="Successfully fulfilled"
+        value={totalCompletedOrders.toLocaleString()}
+        iconBg="rgba(22, 163, 74, 0.12)"
+        iconColor="#16a34a"
+        accentColor="#16a34a"
+        icon={<FaCheckCircle size={18} />}
+      />
 
-            <CustomCard
-                title="Shipped Orders"
-                subtitle="Orders that have left the warehouse"
-                value={totalShippedOrders.toLocaleString()}
-                iconBg="color-mix(in srgb, #8b5cf6 10%, transparent)"
-                iconColor="#7c3aed"
-                icon={<FaTruck size={18} />}
-            />
-        </Box>
-    );
+      {/* Cancelled Orders */}
+      <CustomCard
+        title="Cancelled Orders"
+        subtitle="Cancelled orders"
+        value={totalCancelledOrders.toLocaleString()}
+        iconBg="rgba(239, 68, 68, 0.12)"
+        iconColor="#ef4444"
+        accentColor="#ef4444"
+        icon={<FaTimesCircle size={18} />}
+      />
+    </Box>
+  );
 };
 
 export default StatsGrid;
