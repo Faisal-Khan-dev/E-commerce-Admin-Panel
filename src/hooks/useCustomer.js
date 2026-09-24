@@ -6,6 +6,7 @@ const useCustomers = (page = 1, limit = 10, search = '', status = '', sort = 'ne
         queryKey: ["customers", page, search, status, sort],
         queryFn: () => getAllCustomers(page, limit, search, status, sort),
         placeholderData: keepPreviousData,
+        staleTime: 1000 * 60 * 3,
         refetchOnWindowFocus: false
     });
 }

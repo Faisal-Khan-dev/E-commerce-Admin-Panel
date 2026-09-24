@@ -37,7 +37,7 @@ const Customers = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [sortBy, setSortBy] = useState("newest");
 
-  const debouncedSearch = useDebounce(searchTerm, 800);
+  const debouncedSearch = useDebounce(searchTerm, 350);
   const { data = {}, isLoading } = useCustomers(page, ROWS_PER_PAGE, debouncedSearch, statusFilter, sortBy);
 
   const customers = data?.users || [];

@@ -63,7 +63,7 @@ const Orders = () => {
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [pendingUpdate, setPendingUpdate] = useState(null);
 
-  const debouncedSearch = useDebounce(searchTerm, 500);
+  const debouncedSearch = useDebounce(searchTerm, 350);
 
   const { data = {}, isLoading } = useOrders(page, ROWS_PER_PAGE, debouncedSearch, statusFilter, priceSort);
 

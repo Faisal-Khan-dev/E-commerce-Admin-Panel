@@ -6,6 +6,7 @@ const useOrders = (page, limit, search = '', status = '', sort = 'newest', optio
         queryKey: ["orders", page, search, status, sort],
         queryFn: () => getOrders(page, limit, search, status, sort),
         placeholderData: keepPreviousData,
+        staleTime: 1000 * 60 * 3,
         refetchOnWindowFocus: false,
         ...options
     });

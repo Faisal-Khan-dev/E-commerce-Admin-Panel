@@ -4,6 +4,7 @@ import { Box, Paper, Table, TableBody, TableCell, TableContainer, TableHead, Tab
 import { SyncLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
 import { useProducts, useDeleteProduct } from "../hooks/useProduct";
+import { useCategories } from "../hooks/useCategory";
 import ProductHeader from "../components/Products/ProductHeader";
 import ProductRow from "../components/Products/ProductRow";
 import SearchInput from "../components/common/SearchInput";
@@ -36,12 +37,13 @@ const ROWS_PER_PAGE = 10;
 const Products = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const debouncedSearch = useDebounce(searchTerm, 800);
+  const debouncedSearch = useDebounce(searchTerm, 350);
   const [page, setPage] = useState(1);
   const [category, setCategory] = useState("");
   const [sort, setSort] = useState("newest");
 
   const { data: apiResponse = {}, isLoading } = useProducts(debouncedSearch, category, "", "", sort, page, ROWS_PER_PAGE);
+  const { data: allCategoriesList = [] } = useCategories();
   const { mutate: deleteProduct, isPending: isDeleting } = useDeleteProduct();
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -50,12 +52,12 @@ const Products = () => {
   const products = apiResponse?.products || [];
   const pagination = apiResponse?.pagination || {};
 
-  // Extract unique categories from all products
+  // Extract unique categories from all categories API + current products fallback
   const uniqueCategories = Array.from(
-    new Set(products
-      .map(product => product.category)
-      .filter(cat => cat && cat.trim() !== "")
-    )
+    new Set([
+      ...allCategoriesList,
+      ...products.map(product => product.category).filter(cat => cat && cat.trim() !== "")
+    ])
   ).sort();
 
   const handleSearchChange = useCallback((e) => {

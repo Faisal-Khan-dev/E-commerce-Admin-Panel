@@ -1,11 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getAllProducts, getProductBySlug, addProduct, deleteProduct, updateProduct } from "../services/product";
 
 const useProducts = (search = "", category = "", minPrice = "", maxPrice = "", sort = "newest", page = 1, limit = 10) => {
     return useQuery({
         queryKey: ["products", search, category, minPrice, maxPrice, sort, page, limit],
         queryFn: () => getAllProducts(search, category, minPrice, maxPrice, sort, page, limit),
-        keepPreviousData: true,
+        placeholderData: keepPreviousData,
+        staleTime: 1000 * 60 * 3,
         refetchOnWindowFocus: false,
     });
 }

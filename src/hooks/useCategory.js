@@ -6,6 +6,7 @@ export const useCategories = () => {
         queryKey: ["categories"],
         queryFn: getAllCategories,
         select: (data) => data?.categories || [],
+        staleTime: 1000 * 60 * 10,
     });
 };
 
@@ -14,6 +15,7 @@ export const useActiveCategories = () => {
         queryKey: ["categories", "active"],
         queryFn: getActiveCategories,
         select: (data) => data?.categories || [],
+        staleTime: 1000 * 60 * 10,
     });
 };
 
